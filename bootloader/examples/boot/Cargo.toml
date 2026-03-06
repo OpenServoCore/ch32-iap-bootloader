@@ -1,0 +1,30 @@
+[package]
+name = "boot-example"
+version = "0.1.0"
+edition = "2024"
+
+# Empty workspace table keeps this as a standalone project.
+# Remove this if adding to an existing workspace.
+[workspace]
+
+[dependencies]
+ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac", "rt", "ch32v003f4p6"] }
+qingke-rt = "0.6.1"
+qingke = { version = "0.6.1", features = ["critical-section-impl"] }
+panic-halt = "1.0"
+
+# ch32-iap-bootloader = { version = "0.0.1", features = ["ch32v003f4p6"] }
+ch32-iap-bootloader = { path = "../..", features = ["ch32v003f4p6"] }
+
+[profile.dev]
+opt-level = "z"
+lto = true
+codegen-units = 1
+debug = 2
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

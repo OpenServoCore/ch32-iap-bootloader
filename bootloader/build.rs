@@ -1,6 +1,4 @@
-use ch32_metapac::metadata::{METADATA, MemoryRegionKind};
 use std::env;
-use std::fmt::Write as _;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -8,21 +6,14 @@ use std::path::PathBuf;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
 
-    let memory_x = gen_memory_x(4);
-    File::create(out.join("memory.x"))?.write_all(memory_x.as_bytes())?;
-
-    let rtt_log = env::var_os("RTT_LOG").is_some();
-    if rtt_log {
-        println!("cargo:rustc-cfg=rtt_log");
-    } else {
-        // stub defmt.x to prevent linker errors when defmt is not used
-        File::create(out.join("defmt.x"))?;
+    #[cfg(feature = "memory-x")]
+    {
+        let memory_x = gen_memory_x(4);
+        File::create(out.join("memory.x"))?.write_all(memory_x.as_bytes())?;
     }
 
     println!("cargo:rustc-link-search={}", out.display());
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo::rustc-check-cfg=cfg(rtt_log)");
-    println!("cargo:rerun-if-env-changed=RTT_LOG");
 
     Ok(())
 }
@@ -30,7 +21,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// Generate memory.x file for the given chip.
 /// stolen and modified from:
 ///   https://github.com/ch32-rs/ch32-data/blob/main/ch32-metapac-gen/src/lib.rs
+#[cfg(feature = "memory-x")]
 fn gen_memory_x(boot_pages: u32) -> String {
+    use ch32_metapac::metadata::{METADATA, MemoryRegionKind};
+    use std::fmt::Write as _;
     let mut memory_x = String::new();
 
     let flash = METADATA

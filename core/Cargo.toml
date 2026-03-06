@@ -6,10 +6,11 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
-defmt = { workspace = true }
+defmt = { workspace = true, optional = true }
 embedded-io = { workspace = true }
 embedded-storage = { workspace = true }
 
 [features]
 default = []
+defmt = ["dep:defmt"]
 require-app = []

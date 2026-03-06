@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! log_trace {
     ($($arg:tt)*) => {
-        #[cfg(rtt_log)]
+        #[cfg(feature = "defmt")]
         defmt::trace!($($arg)*)
     };
 }
@@ -9,7 +9,7 @@ macro_rules! log_trace {
 #[macro_export]
 macro_rules! log_debug {
     ($($arg:tt)*) => {
-        #[cfg(rtt_log)]
+        #[cfg(feature = "defmt")]
         defmt::debug!($($arg)*)
     };
 }
@@ -17,7 +17,7 @@ macro_rules! log_debug {
 #[macro_export]
 macro_rules! log_info {
     ($($arg:tt)*) => {
-        #[cfg(rtt_log)]
+        #[cfg(feature = "defmt")]
         defmt::info!($($arg)*)
     };
 }
@@ -25,7 +25,7 @@ macro_rules! log_info {
 #[macro_export]
 macro_rules! log_warn {
     ($($arg:tt)*) => {
-        #[cfg(rtt_log)]
+        #[cfg(feature = "defmt")]
         defmt::warn!($($arg)*)
     };
 }
@@ -33,7 +33,7 @@ macro_rules! log_warn {
 #[macro_export]
 macro_rules! log_error {
     ($($arg:tt)*) => {
-        #[cfg(rtt_log)]
+        #[cfg(feature = "defmt")]
         defmt::error!($($arg)*)
     };
 }

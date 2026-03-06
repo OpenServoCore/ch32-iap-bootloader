@@ -6,26 +6,27 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
-ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac", "rt", "metadata"] }
-qingke-rt = "0.6.1"
-qingke = { version = "0.6.1", features = ["critical-section-impl"] }
-panic-halt = "1.0"
-
-defmt = { workspace = true }
-defmt-rtt = { workspace = true }
+ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac"] }
 embedded-io = { workspace = true }
 embedded-storage = { workspace = true }
 
 ch32-iap-core = { path = "../core" }
 
 [build-dependencies]
-ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac", "rt", "metadata"] }
+ch32-metapac = { version = "0.0.6", default-features = false, features = ["metadata"] }
 
 [features]
-default = ["ch32v003f4p6"]
+default = ["ch32v003f4p6", "memory-x"]
 
 # supported chip variants
 ch32v003f4p6 = ["ch32-metapac/ch32v003f4p6"]
+
+# auto-generate memory.x from ch32-metapac metadata.
+# disable to provide your own memory.x.
+memory-x = []
+
+# logging
+defmt = ["ch32-iap-core/defmt"]
 
 # boot behavior
 require-app = ["ch32-iap-core/require-app"]
