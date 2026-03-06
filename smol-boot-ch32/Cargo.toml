@@ -7,6 +7,7 @@ license.workspace = true
 
 [dependencies]
 ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac"] }
+embedded-hal = { workspace = true }
 embedded-io = { workspace = true }
 embedded-storage = { workspace = true }
 
