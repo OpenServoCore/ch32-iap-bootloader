@@ -1,5 +1,6 @@
 #![no_std]
 
+pub mod crc;
 pub mod traits;
 
 mod log;
