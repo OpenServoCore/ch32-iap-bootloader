@@ -273,6 +273,60 @@ probe-rs reads `p_paddr` (physical address) from ELF program headers to determin
 
 For user flash, the default `memory.x` sets `FLASH ORIGIN = 0x0`, producing `paddr = 0x0`, which matches the user flash NVM region. The flash algorithm internally translates `0x0` → `0x08000000` (the physical address the flash controller expects).
 
+#### VMA/LMA split for boot flash
+
+When booting from system flash, the hardware remaps `0x1FFFF000` to `0x00000000`. Code _executes_ at `0x0` (VMA) but must be _flashed_ to `0x1FFFF000` (LMA). Ideally the ELF would encode both:
+
+```
+p_vaddr = 0x00000000   (execution address — where the CPU sees the code)
+p_paddr = 0x1FFFF000   (load address — where probe-rs should flash it)
+```
+
+This requires a custom linker script with `AT()` to set LMA separately from VMA:
+
+```
+MEMORY
+{
+    BOOT : ORIGIN = 0x1FFFF000, LENGTH = 3328
+    RAM  : ORIGIN = 0x20000000, LENGTH =    2K
+}
+
+SECTIONS
+{
+    .text 0x00000000 : AT(ORIGIN(BOOT))
+    {
+        *(.init);
+        *(.text .text.*);
+    } > BOOT
+
+    /* .rodata, .data, etc. follow the same pattern */
+}
+```
+
+This produces an ELF where code addresses start at `0x0` (correct for execution in boot mode) but `p_paddr = 0x1FFFF000` (so probe-rs flashes to the right place).
+
+**Practical workaround:** riscv-rt's standard `link.x` does not support `AT()` overrides via `memory.x` alone. The simpler approach is to set `FLASH ORIGIN = 0x1FFFF000` — code is linked at `0x1FFFF000`, which works because the CH32V003 maps system flash at _both_ `0x0` and `0x1FFFF000` simultaneously. Addresses in the `0x1FFFF000` range are always accessible regardless of boot mode.
+
+```
+/* Simple approach — works because both addresses map to the same flash */
+MEMORY
+{
+    FLASH : ORIGIN = 0x1FFFF000, LENGTH = 3328
+    RAM   : ORIGIN = 0x20000000, LENGTH =    2K
+}
+
+REGION_ALIAS("REGION_TEXT", FLASH);
+REGION_ALIAS("REGION_RODATA", FLASH);
+REGION_ALIAS("REGION_DATA", RAM);
+REGION_ALIAS("REGION_BSS", RAM);
+REGION_ALIAS("REGION_HEAP", RAM);
+REGION_ALIAS("REGION_STACK", RAM);
+```
+
+Both VMA and LMA are `0x1FFFF000`. probe-rs sees `paddr = 0x1FFFF000` and routes to the boot flash algorithm automatically. The code runs correctly because `0x1FFFF000` is always a valid address for system flash.
+
+A proper VMA/LMA split would require either a custom `link.x` or upstream changes to riscv-rt / ch32-metapac's memory.x generation to support `AT>` regions for boot flash.
+
 ### Build process
 
 ```
