@@ -4,24 +4,21 @@ pub mod command;
 pub mod crc;
 pub mod response;
 
-// Frame delimiters
+/// Frame header.
 pub const HEAD: [u8; 2] = [0xAA, 0x55];
-pub const TAIL: [u8; 2] = [0x55, 0xAA];
 
 /// CRC16 initial value.
 pub const CRC_INIT: u16 = 0xFFFF;
 
 /// Write the frame envelope: HEAD at `buf[0..2]`, CRC over `buf[2..payload_end]`,
-/// then CRC + TAIL. Returns total frame length.
+/// then CRC. Returns total frame length.
 pub(crate) fn seal(buf: &mut [u8], payload_end: usize) -> usize {
     buf[0] = HEAD[0];
     buf[1] = HEAD[1];
     let crc = crc::crc16(CRC_INIT, &buf[2..payload_end]);
     buf[payload_end] = crc as u8;
     buf[payload_end + 1] = (crc >> 8) as u8;
-    buf[payload_end + 2] = TAIL[0];
-    buf[payload_end + 3] = TAIL[1];
-    payload_end + 4
+    payload_end + 2
 }
 
 /// Commands (host → device).

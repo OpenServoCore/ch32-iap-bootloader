@@ -9,7 +9,8 @@ license.workspace = true
 defmt = { workspace = true, optional = true }
 embedded-io = { workspace = true }
 embedded-storage = { workspace = true }
+tinyboot-protocol = { path = "../tinyboot-protocol" }
 
 [features]
 default = []
-defmt = ["dep:defmt"]
+defmt = ["dep:defmt", "tinyboot-protocol/defmt"]

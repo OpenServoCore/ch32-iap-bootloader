@@ -1,9 +1,9 @@
 use crate::crc::crc16;
 use crate::seal;
-use crate::{CRC_INIT, Cmd, HEAD, TAIL};
+use crate::{CRC_INIT, Cmd, HEAD};
 
-/// Minimum command frame size (no data): HEAD(2) + CMD(1) + LEN(1) + ADDR(2) + CRC(2) + TAIL(2) = 10
-pub const MIN_FRAME_SIZE: usize = 10;
+/// Minimum command frame size (no data): HEAD(2) + CMD(1) + LEN(1) + ADDR(2) + CRC(2) = 8
+pub const MIN_FRAME_SIZE: usize = 8;
 
 /// Maximum data payload per command frame.
 pub const MAX_DATA_LEN: usize = 255;
@@ -17,7 +17,7 @@ pub fn frame_len(data_len: usize) -> usize {
 /// Returns the number of bytes written.
 ///
 /// ```text
-/// [HEAD_0] [HEAD_1] [CMD] [LEN] [ADDR_LO] [ADDR_HI] [DATA × LEN] [CRC_LO] [CRC_HI] [TAIL_0] [TAIL_1]
+/// [HEAD_0] [HEAD_1] [CMD] [LEN] [ADDR_LO] [ADDR_HI] [DATA × LEN] [CRC_LO] [CRC_HI]
 /// ```
 ///
 /// Panics if `buf` is too small (needs `frame_len(data.len())` bytes).
@@ -83,8 +83,6 @@ enum CState {
     Data,
     CrcLo,
     CrcHi,
-    Tail0,
-    Tail1,
 }
 
 impl Default for CommandParser {
@@ -171,24 +169,9 @@ impl CommandParser {
             }
             CState::CrcHi => {
                 let received = u16::from_le_bytes([self.crc_lo, byte]);
-                if received != self.crc {
-                    self.reset();
-                    return ParseResult::Error;
-                }
-                self.state = CState::Tail0;
-                ParseResult::Need
-            }
-            CState::Tail0 => {
-                if byte != TAIL[0] {
-                    self.reset();
-                    return ParseResult::Error;
-                }
-                self.state = CState::Tail1;
-                ParseResult::Need
-            }
-            CState::Tail1 => {
+                let expected = self.crc;
                 self.reset();
-                if byte != TAIL[1] {
+                if received != expected {
                     return ParseResult::Error;
                 }
                 match Cmd::from_u8(self.cmd) {
@@ -224,7 +207,7 @@ mod tests {
         let data = [0xDE, 0xAD, 0xBE, 0xEF];
         let mut buf = [0u8; MIN_FRAME_SIZE + 4];
         let n = build(Cmd::Write, 0x0400, &data, &mut buf);
-        assert_eq!(n, 14);
+        assert_eq!(n, 12);
         assert_eq!(buf[3], 4); // LEN
         assert_eq!(buf[4], 0x00); // ADDR_LO
         assert_eq!(buf[5], 0x04); // ADDR_HI

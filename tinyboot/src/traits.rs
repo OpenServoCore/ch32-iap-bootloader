@@ -3,13 +3,14 @@ pub trait Transport: embedded_io::Read + embedded_io::Write {}
 impl<T> Transport for T where T: embedded_io::Read + embedded_io::Write {}
 
 /// Trait for reading and writing firmware to persistent storage.
+///
+/// Flash is memory-mapped, so [`as_slice`](Storage::as_slice) provides
+/// zero-copy read access to the app region.
 pub trait Storage:
     embedded_storage::nor_flash::NorFlash + embedded_storage::nor_flash::ReadNorFlash
 {
-}
-impl<T> Storage for T where
-    T: embedded_storage::nor_flash::NorFlash + embedded_storage::nor_flash::ReadNorFlash
-{
+    /// Direct read access to the app region (zero-copy).
+    fn as_slice(&self) -> &[u8];
 }
 
 /// Trait for system / app interactions.

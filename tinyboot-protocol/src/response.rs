@@ -1,14 +1,14 @@
 use crate::crc::crc16;
 use crate::seal;
-use crate::{CRC_INIT, Cmd, HEAD, Status, TAIL};
+use crate::{CRC_INIT, Cmd, HEAD, Status};
 
-/// Response frame size (fixed): HEAD(2) + CMD(1) + STATUS(1) + CRC(2) + TAIL(2) = 8
-pub const FRAME_SIZE: usize = 8;
+/// Response frame size (fixed): HEAD(2) + CMD(1) + STATUS(1) + CRC(2) = 6
+pub const FRAME_SIZE: usize = 6;
 
 /// Serialize a response frame (device → host) into `buf`.
 ///
 /// ```text
-/// [HEAD_0] [HEAD_1] [CMD] [STATUS] [CRC_LO] [CRC_HI] [TAIL_0] [TAIL_1]
+/// [HEAD_0] [HEAD_1] [CMD] [STATUS] [CRC_LO] [CRC_HI]
 /// ```
 pub fn build(cmd: Cmd, status: Status, buf: &mut [u8; FRAME_SIZE]) {
     buf[2] = cmd as u8;
@@ -47,8 +47,6 @@ enum RState {
     Status,
     CrcLo,
     CrcHi,
-    Tail0,
-    Tail1,
 }
 
 impl Default for ResponseParser {
@@ -102,26 +100,10 @@ impl ResponseParser {
                 ParseResult::Need
             }
             RState::CrcHi => {
+                self.reset();
                 let received = u16::from_le_bytes([self.crc_lo, byte]);
                 let expected = crc16(CRC_INIT, &[self.cmd, self.status]);
                 if received != expected {
-                    self.reset();
-                    return ParseResult::Error;
-                }
-                self.state = RState::Tail0;
-                ParseResult::Need
-            }
-            RState::Tail0 => {
-                if byte != TAIL[0] {
-                    self.reset();
-                    return ParseResult::Error;
-                }
-                self.state = RState::Tail1;
-                ParseResult::Need
-            }
-            RState::Tail1 => {
-                self.reset();
-                if byte != TAIL[1] {
                     return ParseResult::Error;
                 }
                 match (Cmd::from_u8(self.cmd), Status::from_u8(self.status)) {

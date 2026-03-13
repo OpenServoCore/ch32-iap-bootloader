@@ -2,6 +2,7 @@
 members = [
     "tinyboot",
     "tinyboot-ch32",
+    "tinyboot-protocol",
 ]
 resolver = "2"
 

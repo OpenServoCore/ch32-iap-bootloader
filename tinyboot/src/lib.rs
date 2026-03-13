@@ -1,11 +1,24 @@
 #![no_std]
 
-pub mod crc;
+pub mod protocol;
 pub mod traits;
 
 mod log;
 
+pub use tinyboot_protocol as wire;
+
 use traits::{BootCtl, BootMetaStore, BootState, Platform, Storage, Transport};
+
+#[inline(never)]
+fn read_byte<T: embedded_io::Read>(transport: &mut T) -> u8 {
+    let mut b = [0u8; 1];
+    loop {
+        match transport.read(&mut b) {
+            Ok(n) if n > 0 => return b[0],
+            _ => {}
+        }
+    }
+}
 
 pub struct Core<T, S, B, C>
 where
@@ -59,19 +72,82 @@ where
 
     /// Check if the app region contains valid code by reading the first word.
     /// Erased flash reads as 0xFFFFFFFF.
-    fn app_is_blank(&mut self) -> bool {
-        let mut buf = [0u8; 4];
-        if self.platform.storage.read(0, &mut buf).is_err() {
-            return true;
-        }
-        buf == [0xFF; 4]
+    fn app_is_blank(&self) -> bool {
+        let data = self.platform.storage.as_slice();
+        data.len() < 4 || data[..4] == [0xFF; 4]
     }
 
     fn enter_bootloader(&mut self) -> ! {
         log_info!("Entering bootloader mode");
-        // TODO: firmware update loop over transport
+
+        let Platform {
+            transport,
+            storage,
+            boot_meta,
+            ctl,
+        } = &mut self.platform;
+        let mut data_buf = [0u8; 2];
+
         loop {
-            core::hint::spin_loop();
+            // Sync on frame header [0xAA, 0x55]
+            let mut prev = 0u8;
+            loop {
+                let b = read_byte(transport);
+                if prev == wire::HEAD[0] && b == wire::HEAD[1] {
+                    break;
+                }
+                prev = b;
+            }
+
+            // Read fixed header: CMD(1) + LEN(1) + ADDR_LO(1) + ADDR_HI(1)
+            let cmd_byte = read_byte(transport);
+            let len = read_byte(transport);
+            let addr_lo = read_byte(transport);
+            let addr_hi = read_byte(transport);
+
+            let data_len = len as usize;
+            if data_len > data_buf.len() {
+                continue;
+            }
+
+            // Read data bytes
+            for i in 0..data_len {
+                data_buf[i] = read_byte(transport);
+            }
+
+            // Validate CRC over header + data
+            let mut crc = wire::crc::crc16(wire::CRC_INIT, &[cmd_byte, len, addr_lo, addr_hi]);
+            if data_len > 0 {
+                crc = wire::crc::crc16(crc, &data_buf[..data_len]);
+            }
+            let crc_lo = read_byte(transport);
+            let crc_hi = read_byte(transport);
+            if u16::from_le_bytes([crc_lo, crc_hi]) != crc {
+                continue;
+            }
+
+            // Dispatch command
+            let addr = u16::from_le_bytes([addr_lo, addr_hi]) as u32;
+            match wire::Cmd::from_u8(cmd_byte) {
+                Some(wire::Cmd::Info) => {
+                    let _ = protocol::handle_info(transport, storage);
+                }
+                Some(wire::Cmd::Erase) => {
+                    let _ = protocol::handle_erase(transport, storage);
+                }
+                Some(wire::Cmd::Write) => {
+                    let _ = protocol::handle_write(
+                        transport, storage, addr, &data_buf[..data_len],
+                    );
+                }
+                Some(wire::Cmd::Verify) => {
+                    let _ = protocol::handle_verify(transport, storage);
+                }
+                Some(wire::Cmd::Reset) => {
+                    protocol::handle_reset(transport, boot_meta, ctl);
+                }
+                None => {}
+            }
         }
     }
 }
