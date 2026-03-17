@@ -70,6 +70,7 @@ impl NorFlash for Storage {
             writer.erase_page(addr);
             addr += FLASH_ERASE_SIZE as u32;
         }
+        #[cfg(debug_assertions)]
         if writer.check_wrprterr() {
             return Err(StorageError::Protected);
         }
@@ -90,6 +91,7 @@ impl NorFlash for Storage {
             writer.write_halfword(addr, halfword);
             addr += 2;
         }
+        #[cfg(debug_assertions)]
         if writer.check_wrprterr() {
             return Err(StorageError::Protected);
         }

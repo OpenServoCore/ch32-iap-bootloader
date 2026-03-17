@@ -12,5 +12,6 @@ embedded-storage = { workspace = true }
 tinyboot-protocol = { path = "../tinyboot-protocol" }
 
 [features]
-default = []
+default = ["trial-boot"]
+trial-boot = []
 defmt = ["dep:defmt", "tinyboot-protocol/defmt"]

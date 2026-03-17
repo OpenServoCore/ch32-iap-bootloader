@@ -1,5 +1,8 @@
 use crate::protocol;
-use crate::traits::{BootCtl, BootMetaStore, BootState, Platform, Storage, Transport};
+use crate::traits::{BootCtl, BootMetaStore, Platform, Storage, Transport};
+
+#[cfg(feature = "trial-boot")]
+use crate::traits::BootState;
 
 pub struct Core<T, S, B, C>
 where
@@ -25,30 +28,39 @@ where
     pub fn run(mut self) -> ! {
         log_info!("Bootloader started");
 
-        let mut enter = self.platform.ctl.is_boot_requested();
+        match self.check_boot_state() {
+            Ok(false) => self.platform.ctl.boot_app(),
+            Ok(true) | Err(_) => self.enter_bootloader(),
+        }
+    }
 
-        if enter {
+    fn check_boot_state(&mut self) -> Result<bool, B::Error> {
+        if self.platform.ctl.is_boot_requested() {
             log_info!("Boot requested");
-            self.platform.boot_meta.advance().unwrap();
-        } else {
+            self.platform.boot_meta.advance()?;
+            return Ok(true);
+        }
+
+        #[cfg(feature = "trial-boot")]
+        {
             let meta = self.platform.boot_meta.read();
             match meta.boot_state() {
                 BootState::Idle | BootState::Confirmed => {}
-                BootState::Updating | BootState::Corrupt => enter = true,
+                BootState::Updating | BootState::Corrupt => return Ok(true),
                 BootState::Validating => {
                     if meta.trials_remaining() == 0 {
-                        enter = true;
-                    } else {
-                        self.platform.boot_meta.consume_trial().unwrap();
+                        return Ok(true);
                     }
+                    self.platform.boot_meta.consume_trial()?;
                 }
             }
         }
 
-        if enter || self.app_is_blank() {
-            self.enter_bootloader();
+        if self.app_is_blank() {
+            return Ok(true);
         }
-        self.platform.ctl.boot_app();
+
+        Ok(false)
     }
 
     fn app_is_blank(&self) -> bool {

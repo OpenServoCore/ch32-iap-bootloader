@@ -125,7 +125,9 @@ pub trait BootMetaStore {
 
     /// Consume one trial boot (clears one bit in the trials field).
     /// Errors if trials are already exhausted.
-    fn consume_trial(&mut self) -> Result<(), Self::Error>;
+    fn consume_trial(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
 }
 
 /// App-side boot client interface.

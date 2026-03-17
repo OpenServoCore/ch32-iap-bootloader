@@ -13,7 +13,7 @@ embedded-storage = { workspace = true }
 
 critical-section = "1.2"
 defmt = { version = "1.0", optional = true }
-tinyboot = { path = "../tinyboot" }
+tinyboot = { path = "../tinyboot", default-features = false }
 
 [build-dependencies]
 ch32-metapac = { version = "0.0.6", default-features = false, features = ["metadata"] }
