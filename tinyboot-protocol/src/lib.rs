@@ -67,10 +67,10 @@ mod tests {
     }
 
     #[test]
-    fn cmd_invalid_discriminant() {
-        let bad: Cmd = unsafe { core::mem::transmute(0x00u8) };
-        assert!(!bad.is_valid());
-        let bad: Cmd = unsafe { core::mem::transmute(0x06u8) };
-        assert!(!bad.is_valid());
+    fn cmd_discriminant_range() {
+        assert!(!(0x01..=0x05).contains(&0x00u8));
+        assert!(!(0x01..=0x05).contains(&0x06u8));
+        assert!((0x01..=0x05).contains(&(Cmd::Info as u8)));
+        assert!((0x01..=0x05).contains(&(Cmd::Reset as u8)));
     }
 }

@@ -48,18 +48,18 @@ fn generate_pin_and_usart_mapping(out: &Path) -> Result<(), Box<dyn Error>> {
     // up to 32 pins/port (covers gpio_v0=8, v3=16, x0=24).
     let mut pins: Vec<(char, u8)> = Vec::new();
     for p in METADATA.peripherals {
-        if let Some(regs) = &p.registers {
-            if regs.kind == "gpio" {
-                let port = p.name.chars().nth(4).unwrap();
-                let pins_per_port: u8 = match regs.version {
-                    "v0" => 8,
-                    "v3" => 16,
-                    "x0" => 24,
-                    _ => 8,
-                };
-                for n in 0..pins_per_port {
-                    pins.push((port, n));
-                }
+        if let Some(regs) = &p.registers
+            && regs.kind == "gpio"
+        {
+            let port = p.name.chars().nth(4).unwrap();
+            let pins_per_port: u8 = match regs.version {
+                "v0" => 8,
+                "v3" => 16,
+                "x0" => 24,
+                _ => 8,
+            };
+            for n in 0..pins_per_port {
+                pins.push((port, n));
             }
         }
     }

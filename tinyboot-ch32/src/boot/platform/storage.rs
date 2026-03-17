@@ -57,7 +57,9 @@ impl NorFlash for Storage {
     const ERASE_SIZE: usize = FLASH_ERASE_SIZE;
 
     fn erase(&mut self, from: u32, to: u32) -> Result<(), Self::Error> {
-        if from as usize % FLASH_ERASE_SIZE != 0 || to as usize % FLASH_ERASE_SIZE != 0 {
+        if !(from as usize).is_multiple_of(FLASH_ERASE_SIZE)
+            || !(to as usize).is_multiple_of(FLASH_ERASE_SIZE)
+        {
             return Err(StorageError::NotAligned);
         }
         if to as usize > self.app_size {
@@ -78,7 +80,9 @@ impl NorFlash for Storage {
     }
 
     fn write(&mut self, offset: u32, bytes: &[u8]) -> Result<(), Self::Error> {
-        if offset as usize % FLASH_WRITE_SIZE != 0 || bytes.len() % FLASH_WRITE_SIZE != 0 {
+        if !(offset as usize).is_multiple_of(FLASH_WRITE_SIZE)
+            || !bytes.len().is_multiple_of(FLASH_WRITE_SIZE)
+        {
             return Err(StorageError::NotAligned);
         }
         if offset as usize + bytes.len() > self.app_size {

@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+cargo fmt --all
+git add -u
+cargo clippy --workspace --all-targets -- -D warnings
+cargo build --workspace
+cargo test --workspace

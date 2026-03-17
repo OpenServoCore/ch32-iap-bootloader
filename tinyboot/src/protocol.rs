@@ -49,7 +49,7 @@ impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> Dispatcher<'a, 
 
                 if addr >= capacity as u32
                     || addr + data_len as u32 > capacity as u32
-                    || addr as usize % S::WRITE_SIZE != 0
+                    || !(addr as usize).is_multiple_of(S::WRITE_SIZE)
                 {
                     self.frame.status = Status::AddrOutOfBounds;
                 } else if self

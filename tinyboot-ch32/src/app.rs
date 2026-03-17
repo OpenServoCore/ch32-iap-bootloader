@@ -42,6 +42,6 @@ impl TBBootClient for BootClient {
         critical_section::with(|_| {
             flash::set_boot_mode(true);
         });
-        pfic::system_reset();
+        pfic::system_reset()
     }
 }
