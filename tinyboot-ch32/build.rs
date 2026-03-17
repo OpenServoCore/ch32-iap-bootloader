@@ -255,7 +255,7 @@ impl FlashInfo {
 
         // Boot meta struct is stored in the last FLASH_WRITE_SIZE bytes of
         // the flash. The app linker script should reserve this space.
-        let meta_size = flash_write_size;
+        let meta_size = flash_erase_size;
         let meta_address = app_address + (app_size - meta_size) as u32;
 
         FlashInfo {
@@ -263,7 +263,7 @@ impl FlashInfo {
             #[cfg(feature = "bootloader")]
             erase_size: flash_erase_size,
             #[cfg(feature = "bootloader")]
-            write_size: flash_write_size,
+            write_size: 2, // halfword programming granularity
             sections: Sections {
                 boot: SectionInfo {
                     base: boot_address,

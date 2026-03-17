@@ -1,6 +1,7 @@
 use embedded_storage::nor_flash::{
     ErrorType, NorFlash, NorFlashError, NorFlashErrorKind, ReadNorFlash,
 };
+use tinyboot::traits::Storage as StorageTrait;
 
 use crate::common::{APP_BASE, APP_PTR, APP_SIZE, FLASH_ERASE_SIZE, FLASH_WRITE_SIZE};
 use crate::hal::flash::FlashWriter;
@@ -47,15 +48,15 @@ impl NorFlash for Storage {
         if to as usize > APP_SIZE {
             return Err(StorageError::OutOfBounds);
         }
-        let writer = FlashWriter::fast(&self.regs);
+        let writer = FlashWriter::standard(&self.regs);
         let mut addr = APP_BASE + from;
         let end = APP_BASE + to;
         while addr < end {
             writer.erase_page(addr);
-            if writer.check_wrprterr() {
-                return Err(StorageError::Protected);
-            }
             addr += FLASH_ERASE_SIZE as u32;
+        }
+        if writer.check_wrprterr() {
+            return Err(StorageError::Protected);
         }
         Ok(())
     }
@@ -67,16 +68,23 @@ impl NorFlash for Storage {
         if offset as usize + bytes.len() > APP_SIZE {
             return Err(StorageError::OutOfBounds);
         }
-        let writer = FlashWriter::fast(&self.regs);
+        let writer = FlashWriter::standard(&self.regs);
         let mut addr = APP_BASE + offset;
-        for chunk in bytes.chunks_exact(FLASH_WRITE_SIZE) {
-            writer.write_page(addr, chunk);
-            if writer.check_wrprterr() {
-                return Err(StorageError::Protected);
-            }
-            addr += FLASH_WRITE_SIZE as u32;
+        for pair in bytes.chunks_exact(2) {
+            let halfword = u16::from_le_bytes([pair[0], pair[1]]);
+            writer.write_halfword(addr, halfword);
+            addr += 2;
+        }
+        if writer.check_wrprterr() {
+            return Err(StorageError::Protected);
         }
         Ok(())
+    }
+}
+
+impl StorageTrait for Storage {
+    fn as_slice(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts(APP_PTR as *const u8, APP_SIZE) }
     }
 }
 

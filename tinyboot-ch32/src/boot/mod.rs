@@ -32,7 +32,7 @@ impl Default for Bootloader {
 }
 
 impl Bootloader {
-    pub fn run(&mut self) -> ! {
+    pub fn run(self) -> ! {
         self.core.run();
     }
 }
