@@ -10,6 +10,7 @@
   "linker": "rust-lld",
   "linker-flavor": "gnu-lld",
   "llvm-target": "riscv32",
+  "abi": "ilp32e",
   "llvm-abiname": "ilp32e",
   "max-atomic-width": 32,
   "panic-strategy": "abort",
