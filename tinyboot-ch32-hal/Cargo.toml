@@ -1,0 +1,28 @@
+[package]
+name = "tinyboot-ch32-hal"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+links = "tinyboot-ch32-hal"
+
+[dependencies]
+ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac"] }
+embedded-hal = { workspace = true }
+embedded-io = { workspace = true }
+embedded-storage = { workspace = true }
+
+critical-section = "1.2"
+
+[build-dependencies]
+ch32-metapac = { version = "0.0.6", default-features = false, features = ["metadata"] }
+
+[features]
+default = ["ch32v003f4p6"]
+
+# supported chip variants
+ch32v003f4p6 = ["ch32-metapac/ch32v003f4p6"]
+
+# Bootloader runs from system flash (uses BOOT_MODE register for boot request).
+# When disabled, bootloader runs from user flash (uses RAM magic word for boot request).
+system-flash = []

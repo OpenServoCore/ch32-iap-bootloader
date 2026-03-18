@@ -1,7 +1,9 @@
 [workspace]
 members = [
     "tinyboot",
-    "tinyboot-ch32",
+    "tinyboot-ch32-hal",
+    "tinyboot-ch32-boot",
+    "tinyboot-ch32-app",
     "tinyboot-protocol",
 ]
 resolver = "2"

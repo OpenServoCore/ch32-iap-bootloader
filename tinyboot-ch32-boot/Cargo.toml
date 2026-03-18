@@ -1,0 +1,23 @@
+[package]
+name = "tinyboot-ch32-boot"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[dependencies]
+tinyboot-ch32-hal = { path = "../tinyboot-ch32-hal", default-features = false }
+tinyboot = { path = "../tinyboot", default-features = false }
+ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac"] }
+critical-section = "1.2"
+defmt = { workspace = true, optional = true }
+embedded-io = { workspace = true }
+embedded-storage = { workspace = true }
+
+[features]
+default = ["ch32v003f4p6"]
+ch32v003f4p6 = ["tinyboot-ch32-hal/ch32v003f4p6", "ch32-metapac/ch32v003f4p6"]
+rt = []
+system-flash = ["tinyboot-ch32-hal/system-flash"]
+defmt = ["dep:defmt", "tinyboot/defmt"]
+trial-boot = ["tinyboot/trial-boot"]
