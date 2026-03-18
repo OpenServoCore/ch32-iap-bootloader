@@ -32,16 +32,13 @@ impl<'a, const D: usize, T: Transport<D>, S: Storage, B: BootMetaStore, C: BootC
 
         match self.frame.cmd {
             Cmd::Info => {
-                let ws = (S::WRITE_SIZE as u16).to_le_bytes();
                 let cap = (capacity as u16).to_le_bytes();
                 let ds = (D as u16).to_le_bytes();
-                self.frame.len = 6;
-                self.frame.data[0] = ws[0];
-                self.frame.data[1] = ws[1];
-                self.frame.data[2] = cap[0];
-                self.frame.data[3] = cap[1];
-                self.frame.data[4] = ds[0];
-                self.frame.data[5] = ds[1];
+                self.frame.len = 4;
+                self.frame.data[0] = cap[0];
+                self.frame.data[1] = cap[1];
+                self.frame.data[2] = ds[0];
+                self.frame.data[3] = ds[1];
             }
             Cmd::Erase => {
                 if self.platform.storage.erase(0, capacity as u32).is_err() {
@@ -274,14 +271,12 @@ mod tests {
         d.dispatch().unwrap();
 
         assert_eq!(d.frame.status, Status::Ok);
-        assert_eq!(d.frame.len, 6);
-        // MockStorage::WRITE_SIZE = 4
-        assert_eq!(u16::from_le_bytes([d.frame.data[0], d.frame.data[1]]), 4);
+        assert_eq!(d.frame.len, 4);
         // Capacity = 256 bytes
-        assert_eq!(u16::from_le_bytes([d.frame.data[2], d.frame.data[3]]), 256);
+        assert_eq!(u16::from_le_bytes([d.frame.data[0], d.frame.data[1]]), 256);
         // Data size = TEST_D = 55
         assert_eq!(
-            u16::from_le_bytes([d.frame.data[4], d.frame.data[5]]),
+            u16::from_le_bytes([d.frame.data[2], d.frame.data[3]]),
             TEST_D as u16
         );
     }

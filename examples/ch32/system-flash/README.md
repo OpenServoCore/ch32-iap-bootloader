@@ -52,7 +52,7 @@ feature and configuration choice matters at this scale.
 
 | Configuration            | Approximate Size | Notes                            |
 |--------------------------|------------------|----------------------------------|
-| Base bootloader          | ~1748 B          | Full-duplex USART, RS-485 tx_en  |
+| Base bootloader          | ~1708 B          | Full-duplex USART, RS-485 tx_en  |
 | + `defmt` logging        | —                | Does not fit in system flash     |
 | + `trial-boot`           | —                | Does not fit in system flash     |
 | - RS-485 `tx_en`         | Saves ~44 B      | Remove if not using RS-485       |
