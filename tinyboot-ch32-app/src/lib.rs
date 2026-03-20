@@ -2,7 +2,7 @@
 
 use tinyboot::traits::BootState;
 use tinyboot::traits::app::BootClient as TBBootClient;
-use tinyboot_ch32_hal::{flash, pfic};
+use tinyboot_ch32_hal::{flash, iwdg, pfic};
 
 // Re-exports so apps only need this one crate.
 pub use tinyboot::app::{App, AppConfig};
@@ -47,6 +47,7 @@ impl TBBootClient for Ch32BootClient {
             }
             buf[8..16].copy_from_slice(&meta);
             flash::unlock();
+            iwdg::feed();
             let w = flash::FlashWriter::ob();
             w.erase_start();
             w.erase(flash::OB_BASE);
