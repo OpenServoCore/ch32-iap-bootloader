@@ -1,5 +1,7 @@
 # tinyboot
 
+Part of the [tinyboot](https://github.com/OpenServoCore/tinyboot) project — see the main README to get started.
+
 Platform-agnostic bootloader core: protocol dispatcher, boot state machine, and app validation.
 
 ## Boot State Machine

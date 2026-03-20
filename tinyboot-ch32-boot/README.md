@@ -1,5 +1,7 @@
 # tinyboot-ch32-boot
 
+Part of the [tinyboot](https://github.com/OpenServoCore/tinyboot) project — see the main README to get started.
+
 CH32 platform implementation for the tinyboot bootloader. Provides storage, transport, boot metadata, and boot control backed by CH32 hardware.
 
 ## Overview

@@ -1,5 +1,7 @@
 # tinyboot-protocol
 
+Part of the [tinyboot](https://github.com/OpenServoCore/tinyboot) project — see the main README to get started.
+
 Wire protocol for tinyboot. Defines the frame format used between host and device over UART/RS-485.
 
 ## Frame format

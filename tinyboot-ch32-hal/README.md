@@ -1,5 +1,7 @@
 # tinyboot-ch32-hal
 
+Part of the [tinyboot](https://github.com/OpenServoCore/tinyboot) project — see the main README to get started.
+
 Minimal hardware abstraction layer for tinyboot on CH32 microcontrollers. This is not a general-purpose HAL — it provides only what the bootloader needs, optimized for code size.
 
 ## Modules

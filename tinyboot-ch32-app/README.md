@@ -1,5 +1,7 @@
 # tinyboot-ch32-app
 
+Part of the [tinyboot](https://github.com/OpenServoCore/tinyboot) project — see the main README to get started.
+
 App-side tinyboot client for CH32 microcontrollers. Handles boot confirmation and responds to host commands (Info, Reset) so the CLI can query and reset the device without physical access.
 
 ## Usage

@@ -1,5 +1,7 @@
 # tinyboot-cli
 
+Part of the [tinyboot](https://github.com/OpenServoCore/tinyboot) project — see the main README to get started.
+
 Host-side CLI for flashing firmware to tinyboot devices over UART/RS-485.
 
 ## Install
