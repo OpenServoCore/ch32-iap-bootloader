@@ -1,7 +1,7 @@
+/// App-side boot client interface.
 pub mod app;
+/// Boot-side platform traits.
 pub mod boot;
-
-// Shared types used by both boot and app.
 
 /// Current stage in the firmware update lifecycle.
 ///
@@ -26,6 +26,7 @@ pub enum BootState {
 }
 
 impl BootState {
+    /// Parse a raw byte into a [`BootState`]. Unrecognised values default to [`Idle`](BootState::Idle).
     pub fn from_u8(v: u8) -> Self {
         match v {
             0xFF | 0x7F | 0x3F => unsafe { core::mem::transmute::<u8, BootState>(v) },

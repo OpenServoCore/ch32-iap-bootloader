@@ -1,5 +1,12 @@
 #![no_std]
+#![warn(missing_docs)]
 
+//! CH32 bootloader platform implementation.
+//!
+//! Provides storage, transport, boot control, and metadata backed by the
+//! CH32 flash controller and option bytes.
+
+/// Platform components (storage, transport, boot control, metadata).
 pub mod platform;
 
 #[cfg(all(target_arch = "riscv32", feature = "rt"))]

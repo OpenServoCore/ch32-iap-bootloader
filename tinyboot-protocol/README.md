@@ -79,6 +79,7 @@ Returns 2 bytes via the `VerifyData` struct:
 | 0x03 | CrcMismatch     | CRC verification failed             |
 | 0x04 | AddrOutOfBounds | Address or length out of range      |
 | 0x05 | Unsupported     | Command not valid in current state  |
+| 0x06 | PayloadOverflow | Frame payload exceeds maximum size  |
 
 ## CRC
 

@@ -14,11 +14,15 @@ pub const MAX_PAYLOAD: usize = 64;
 #[repr(C, packed)]
 #[derive(Clone, Copy)]
 pub struct InfoData {
+    /// App region capacity in bytes.
     pub capacity: u32,
+    /// Erase page size in bytes.
     pub erase_size: u16,
+    /// Boot version (packed 5.5.6, `0xFFFF` = none).
     pub boot_version: u16,
+    /// App version (packed 5.5.6, `0xFFFF` = none).
     pub app_version: u16,
-    /// 0 = bootloader, 1 = app
+    /// 0 = bootloader, 1 = app.
     pub mode: u16,
 }
 
@@ -26,6 +30,7 @@ pub struct InfoData {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct EraseData {
+    /// Number of bytes to erase (must be aligned to erase size).
     pub byte_count: u16,
 }
 
@@ -33,6 +38,7 @@ pub struct EraseData {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct VerifyData {
+    /// CRC16 of the app region.
     pub crc: u16,
 }
 
@@ -42,9 +48,13 @@ pub struct VerifyData {
 /// because the caller must know which variant is active.
 #[repr(C)]
 pub union Data {
+    /// Raw byte access.
     pub raw: [u8; MAX_PAYLOAD],
+    /// Info response fields.
     pub info: InfoData,
+    /// Erase request fields.
     pub erase: EraseData,
+    /// Verify response fields.
     pub verify: VerifyData,
 }
 
@@ -57,11 +67,17 @@ pub union Data {
 #[repr(C)]
 pub struct Frame {
     sync: Sync,
+    /// Command code.
     pub cmd: Cmd,
+    /// Response status (always [`Status::Request`] for requests).
     pub status: Status,
+    /// Flash address (for Write/Erase) or mode selector (for Reset).
     pub addr: u32,
+    /// Data payload length in bytes (0..64).
     pub len: u16,
+    /// Payload data (union-typed).
     pub data: Data,
+    /// CRC16 over the frame body (little-endian).
     pub crc: [u8; 2],
 }
 
@@ -83,6 +99,7 @@ impl Default for Frame {
 
 impl Frame {
     fn as_bytes(&self, offset: usize, len: usize) -> &[u8] {
+        debug_assert!(offset + len <= core::mem::size_of::<Self>());
         unsafe {
             let ptr = (self as *const Self as *const u8).add(offset);
             core::slice::from_raw_parts(ptr, len)
@@ -90,6 +107,7 @@ impl Frame {
     }
 
     fn as_bytes_mut(&mut self, offset: usize, len: usize) -> &mut [u8] {
+        debug_assert!(offset + len <= core::mem::size_of::<Self>());
         unsafe {
             let ptr = (self as *mut Self as *mut u8).add(offset);
             core::slice::from_raw_parts_mut(ptr, len)
@@ -118,13 +136,19 @@ impl Frame {
             .map_err(|_| ReadError)?;
 
         if !Cmd::is_valid(self.as_bytes(2, 1)[0]) || !Status::is_valid(self.as_bytes(3, 1)[0]) {
+            // Remaining payload + CRC bytes are left in the transport. The sync
+            // scanner will skip them as garbage on the next read(). Draining here
+            // is not feasible: the len field is untrusted and the payload could be
+            // up to 64 KB, which exceeds our buffer and time budget on small MCUs.
             return Ok(Status::Unsupported);
         }
 
         let data_len = self.len as usize;
 
         if data_len > MAX_PAYLOAD {
-            return Ok(Status::AddrOutOfBounds);
+            // Same as above — we cannot drain a payload larger than our buffer.
+            // The sync scanner recovers on the next frame.
+            return Ok(Status::PayloadOverflow);
         }
 
         // Read data directly into buffer
@@ -168,13 +192,15 @@ impl Frame {
             .map_err(|_| ReadError)?;
 
         if !Cmd::is_valid(self.as_bytes(2, 1)[0]) || !Status::is_valid(self.as_bytes(3, 1)[0]) {
+            // See sync read() for rationale on not draining here.
             return Ok(Status::Unsupported);
         }
 
         let data_len = self.len as usize;
 
         if data_len > MAX_PAYLOAD {
-            return Ok(Status::AddrOutOfBounds);
+            // See sync read() for rationale on not draining here.
+            return Ok(Status::PayloadOverflow);
         }
 
         if data_len > 0 {
@@ -402,7 +428,7 @@ mod tests {
         let mut frame2 = Frame::default();
         assert_eq!(
             frame2.read(&mut MockReader::new(sink.written())),
-            Ok(Status::AddrOutOfBounds)
+            Ok(Status::PayloadOverflow)
         );
     }
 }

@@ -8,10 +8,15 @@ use tinyboot_ch32_hal::flash::FlashWriter;
 const FLASH_WRITE_SIZE: usize = 2;
 const FLASH_ERASE_SIZE: usize = 64;
 
+/// Flash storage configuration.
 pub struct StorageConfig {
+    /// Physical base address of the boot region.
     pub boot_base: u32,
+    /// Size of the boot region in bytes.
     pub boot_size: u32,
+    /// Physical base address of the app region.
     pub app_base: u32,
+    /// Size of the app region in bytes.
     pub app_size: usize,
 }
 
@@ -32,6 +37,7 @@ impl NorFlashError for StorageError {
     }
 }
 
+/// CH32 flash storage implementing [`NorFlash`] and the tinyboot [`Storage`](tinyboot::traits::boot::Storage) trait.
 pub struct Storage {
     boot_base: u32,
     boot_size: u32,
@@ -40,6 +46,7 @@ pub struct Storage {
 }
 
 impl Storage {
+    /// Create storage from configuration.
     pub fn new(config: StorageConfig) -> Self {
         Storage {
             boot_base: config.boot_base,
@@ -80,6 +87,10 @@ impl NorFlash for Storage {
             addr += FLASH_ERASE_SIZE as u32;
         }
         writer.operation_end();
+        // Write-protection check is debug-only: unlock() disables protection
+        // before the protocol loop, so WRPRTERR should never fire in a correctly
+        // configured system. The verify step catches silent write failures.
+        // Keeping this out of release saves ~40-60 bytes against the 1920-byte budget.
         #[cfg(debug_assertions)]
         if writer.check_wrprterr() {
             return Err(StorageError::Protected);
@@ -106,6 +117,7 @@ impl NorFlash for Storage {
         }
         writer.operation_end();
 
+        // See erase() for rationale on debug-only write-protection check.
         #[cfg(debug_assertions)]
         if writer.check_wrprterr() {
             return Err(StorageError::Protected);

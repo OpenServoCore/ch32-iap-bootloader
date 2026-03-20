@@ -19,36 +19,34 @@ struct Cli {
     command: Commands,
 }
 
+#[derive(clap::Args)]
+struct ConnectionArgs {
+    /// Serial port (e.g. /dev/ttyUSB0). Auto-detects if omitted.
+    #[arg(long)]
+    port: Option<String>,
+    /// Baud rate
+    #[arg(long, default_value_t = 115200)]
+    baud: u32,
+}
+
 #[derive(Subcommand)]
 enum Commands {
     /// Query device info (capacity, payload size, erase size)
     Info {
-        /// Serial port (e.g. /dev/ttyUSB0). Auto-detects if omitted.
-        #[arg(long)]
-        port: Option<String>,
-        /// Baud rate
-        #[arg(long, default_value_t = 115200)]
-        baud: u32,
+        #[command(flatten)]
+        conn: ConnectionArgs,
     },
     /// Erase entire app region
     Erase {
-        /// Serial port (e.g. /dev/ttyUSB0). Auto-detects if omitted.
-        #[arg(long)]
-        port: Option<String>,
-        /// Baud rate
-        #[arg(long, default_value_t = 115200)]
-        baud: u32,
+        #[command(flatten)]
+        conn: ConnectionArgs,
     },
     /// Flash firmware to device
     Flash {
         /// Firmware binary file
         firmware: String,
-        /// Serial port (e.g. /dev/ttyUSB0). Auto-detects if omitted.
-        #[arg(long)]
-        port: Option<String>,
-        /// Baud rate
-        #[arg(long, default_value_t = 115200)]
-        baud: u32,
+        #[command(flatten)]
+        conn: ConnectionArgs,
         /// Reset device after flashing
         #[arg(long)]
         reset: bool,
@@ -63,12 +61,8 @@ enum Commands {
     },
     /// Reset the device
     Reset {
-        /// Serial port (e.g. /dev/ttyUSB0). Auto-detects if omitted.
-        #[arg(long)]
-        port: Option<String>,
-        /// Baud rate
-        #[arg(long, default_value_t = 115200)]
-        baud: u32,
+        #[command(flatten)]
+        conn: ConnectionArgs,
         /// Reset into bootloader instead of booting app
         #[arg(long)]
         bootloader: bool,
@@ -83,11 +77,15 @@ fn detect_port(baud: u32) -> Result<String, Box<dyn std::error::Error>> {
         return Err("no serial ports found".into());
     }
     for p in &ports {
-        let Ok(serial) = serialport::new(&p.port_name, baud)
+        let serial = match serialport::new(&p.port_name, baud)
             .timeout(std::time::Duration::from_millis(500))
             .open()
-        else {
-            continue;
+        {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("  skipping {}: {e}", p.port_name);
+                continue;
+            }
         };
         let mut client = Client::new(Serial(serial));
         if client.info().is_ok() {
@@ -202,9 +200,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Info { port, baud } => {
-            let port = resolve_port(port, baud)?;
-            let serial = open_serial(&port, baud)?;
+        Commands::Info { conn } => {
+            let port = resolve_port(conn.port, conn.baud)?;
+            let serial = open_serial(&port, conn.baud)?;
             let mut client = Client::new(serial);
             let info = client.info()?;
             println!("capacity:     {} bytes", info.capacity);
@@ -226,9 +224,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if info.mode == 0 { "bootloader" } else { "app" }
             );
         }
-        Commands::Erase { port, baud } => {
-            let port = resolve_port(port, baud)?;
-            let serial = open_serial(&port, baud)?;
+        Commands::Erase { conn } => {
+            let port = resolve_port(conn.port, conn.baud)?;
+            let serial = open_serial(&port, conn.baud)?;
             let mut client = Client::new(serial);
 
             let info = client.info()?;
@@ -263,14 +261,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::Flash {
             firmware,
-            port,
-            baud,
+            conn,
             reset,
         } => {
-            let port = resolve_port(port, baud)?;
+            let port = resolve_port(conn.port, conn.baud)?;
             let file_data = std::fs::read(&firmware)?;
             let fw = load_firmware(&file_data)?;
-            let serial = open_serial(&port, baud)?;
+            let serial = open_serial(&port, conn.baud)?;
             let mut client = Client::new(serial);
 
             let info = client.info()?;
@@ -311,13 +308,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("device reset");
             }
         }
-        Commands::Reset {
-            port,
-            baud,
-            bootloader,
-        } => {
-            let port = resolve_port(port, baud)?;
-            let serial = open_serial(&port, baud)?;
+        Commands::Reset { conn, bootloader } => {
+            let port = resolve_port(conn.port, conn.baud)?;
+            let serial = open_serial(&port, conn.baud)?;
             let mut client = Client::new(serial);
             client.reset(bootloader);
             println!(

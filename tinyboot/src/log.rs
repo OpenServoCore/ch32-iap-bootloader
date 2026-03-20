@@ -1,4 +1,5 @@
-#[macro_export]
+#![allow(unused_macros)]
+
 macro_rules! log_trace {
     ($($arg:tt)*) => {
         #[cfg(feature = "defmt")]
@@ -6,7 +7,6 @@ macro_rules! log_trace {
     };
 }
 
-#[macro_export]
 macro_rules! log_debug {
     ($($arg:tt)*) => {
         #[cfg(feature = "defmt")]
@@ -14,7 +14,6 @@ macro_rules! log_debug {
     };
 }
 
-#[macro_export]
 macro_rules! log_info {
     ($($arg:tt)*) => {
         #[cfg(feature = "defmt")]
@@ -22,7 +21,6 @@ macro_rules! log_info {
     };
 }
 
-#[macro_export]
 macro_rules! log_warn {
     ($($arg:tt)*) => {
         #[cfg(feature = "defmt")]
@@ -30,7 +28,6 @@ macro_rules! log_warn {
     };
 }
 
-#[macro_export]
 macro_rules! log_error {
     ($($arg:tt)*) => {
         #[cfg(feature = "defmt")]

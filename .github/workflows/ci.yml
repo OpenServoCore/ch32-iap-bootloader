@@ -20,6 +20,8 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo build --workspace
       - run: cargo test --workspace
+      - run: cargo doc --workspace --no-deps
+      - run: cargo build --workspace --release
       - run: cd examples/ch32/system-flash && cargo +nightly fmt --all -- --check
       - run: cd examples/ch32/system-flash && cargo +nightly clippy -- -D warnings
       - run: cd examples/ch32/system-flash && cargo +nightly build --release

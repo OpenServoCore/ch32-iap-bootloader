@@ -35,6 +35,7 @@ pub trait BootCtl {
 
 /// Persistent boot metadata storage.
 pub trait BootMetaStore {
+    /// Error type for metadata operations.
     type Error: core::fmt::Debug;
 
     /// Current boot lifecycle state.
@@ -57,6 +58,9 @@ pub trait BootMetaStore {
     fn refresh(&mut self, checksum: u16, state: BootState) -> Result<(), Self::Error>;
 }
 
+/// Concrete platform holding all boot-time peripherals.
+///
+/// Constructed by the board-specific crate and passed to [`Core::new`](crate::Core::new).
 pub struct Platform<T, S, B, C>
 where
     T: Transport,
@@ -64,9 +68,13 @@ where
     B: BootMetaStore,
     C: BootCtl,
 {
+    /// UART / RS-485 transport.
     pub transport: T,
+    /// Flash storage for reading and writing firmware.
     pub storage: S,
+    /// Persistent boot metadata (state, trials, checksum).
     pub boot_meta: B,
+    /// Boot control (reset, boot mode selection).
     pub ctl: C,
 }
 
@@ -77,6 +85,7 @@ where
     B: BootMetaStore,
     C: BootCtl,
 {
+    /// Assemble a platform from its components.
     pub fn new(transport: T, storage: S, boot_meta: B, ctl: C) -> Self {
         Self {
             transport,

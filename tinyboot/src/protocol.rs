@@ -6,11 +6,14 @@ use tinyboot_protocol::{Cmd, ReadError, Status};
 
 /// Protocol dispatcher. Borrows the platform, owns the frame.
 pub struct Dispatcher<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> {
+    /// Mutable reference to the platform peripherals.
     pub platform: &'a mut Platform<T, S, B, C>,
+    /// Reusable frame buffer.
     pub frame: Frame,
 }
 
 impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> Dispatcher<'a, T, S, B, C> {
+    /// Create a new dispatcher for the given platform.
     pub fn new(platform: &'a mut Platform<T, S, B, C>) -> Self {
         Self {
             platform,

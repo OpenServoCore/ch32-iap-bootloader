@@ -8,6 +8,7 @@ pub enum BootMetaError {
     TrialsExhausted,
 }
 
+/// CH32 boot metadata backed by option bytes.
 #[derive(Default)]
 pub struct BootMetaStore;
 

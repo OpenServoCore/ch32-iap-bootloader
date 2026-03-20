@@ -2,6 +2,8 @@ use crate::protocol;
 use crate::traits::BootState;
 use crate::traits::boot::{BootCtl, BootMetaStore, Platform, Storage, Transport};
 
+/// Bootloader entry point. Checks boot state, validates the app, and either
+/// boots the application or enters the protocol loop for firmware updates.
 pub struct Core<T, S, B, C>
 where
     T: Transport,
@@ -19,10 +21,13 @@ where
     B: BootMetaStore,
     C: BootCtl,
 {
+    /// Create a new bootloader core from a platform implementation.
     pub fn new(platform: Platform<T, S, B, C>) -> Self {
         Core { platform }
     }
 
+    /// Run the bootloader. Checks boot state, validates the app, and either
+    /// boots the application or enters the protocol loop. Does not return.
     pub fn run(mut self) -> ! {
         log_info!("Bootloader started");
 
@@ -56,6 +61,9 @@ where
         Ok(false)
     }
 
+    /// Validate the app image. The CRC covers the entire app region
+    /// (firmware + erased tail), not just the firmware bytes. The host
+    /// must compute the CRC the same way (pad with 0xFF to capacity).
     fn validate_app(&self) -> bool {
         let stored = self.platform.boot_meta.app_checksum();
         if stored != 0xFFFF {

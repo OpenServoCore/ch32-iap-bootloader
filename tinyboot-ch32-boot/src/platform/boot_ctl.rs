@@ -2,6 +2,7 @@ use tinyboot::traits::boot::BootCtl as TBBootCtl;
 
 use tinyboot_ch32_hal::pfic;
 
+/// Boot control configuration.
 pub struct BootCtlConfig {
     /// App entry point address (execution alias, not FPEC address).
     /// Only used for user-flash bootloaders that must jump to the app.
@@ -9,12 +10,14 @@ pub struct BootCtlConfig {
     pub app_entry: u32,
 }
 
+/// CH32 boot control (reset, boot mode selection).
 pub struct BootCtl {
     #[cfg(not(feature = "system-flash"))]
     app_entry: u32,
 }
 
 impl BootCtl {
+    /// Create boot control from configuration.
     pub fn new(_config: BootCtlConfig) -> Self {
         Self {
             #[cfg(not(feature = "system-flash"))]
@@ -43,8 +46,8 @@ impl TBBootCtl for BootCtl {
         }
         #[cfg(not(feature = "system-flash"))]
         {
+            tinyboot_ch32_hal::boot_request::set_boot_request(bootloader);
             if bootloader {
-                tinyboot_ch32_hal::boot_request::set_boot_request(true);
                 pfic::system_reset()
             } else {
                 pfic::jump(self.app_entry)

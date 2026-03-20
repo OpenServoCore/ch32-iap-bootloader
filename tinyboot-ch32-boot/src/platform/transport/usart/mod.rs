@@ -5,29 +5,44 @@ use embedded_io::ErrorType;
 use tinyboot_ch32_hal::gpio::{PinMode, Pull};
 use tinyboot_ch32_hal::{Pin, UsartMapping};
 use tinyboot_ch32_hal::{afio, gpio, rcc, usart};
+/// USART duplex mode.
 pub enum Duplex {
+    /// Half-duplex (single wire, RS-485).
     Half,
+    /// Full-duplex (separate TX/RX).
     Full,
 }
 
+/// Supported baud rates.
 #[derive(Copy, Clone)]
 #[repr(u32)]
 pub enum BaudRate {
+    /// 9600 baud.
     B9600 = 9600,
+    /// 19200 baud.
     B19200 = 19200,
+    /// 38400 baud.
     B38400 = 38400,
+    /// 57600 baud.
     B57600 = 57600,
+    /// 115200 baud.
     B115200 = 115200,
 }
 
+/// TX-enable (DE/RE) pin configuration for RS-485 transceivers.
 #[derive(Copy, Clone)]
 pub struct TxEnConfig {
+    /// GPIO pin connected to DE/RE.
     pub pin: Pin,
+    /// `true` if the transceiver enables TX on logic high.
     pub active_high: bool,
 }
 
+/// USART peripheral configuration.
 pub struct UsartConfig {
+    /// Half- or full-duplex mode.
     pub duplex: Duplex,
+    /// Baud rate.
     pub baud: BaudRate,
     /// Peripheral clock frequency (Hz) feeding this USART.
     /// Used to compute the baud rate divisor (BRR = pclk / baud).
@@ -37,11 +52,15 @@ pub struct UsartConfig {
     ///   CH32V1xx/V2xx/V3xx: HSI=8MHz / HPRE=1 = 8_000_000
     ///   CH32X0xx: HSI=48MHz / HPRE=1 = 48_000_000
     pub pclk: u32,
+    /// USART pin mapping (selects TX/RX pins and remap).
     pub mapping: UsartMapping,
+    /// RX pin pull configuration.
     pub rx_pull: Pull,
+    /// Optional TX-enable pin for RS-485 DE/RE control.
     pub tx_en: Option<TxEnConfig>,
 }
 
+/// USART transport with optional RS-485 TX-enable control.
 pub struct Usart {
     regs: ch32_metapac::usart::Usart,
     tx_en: Option<TxEnConfig>,
@@ -50,6 +69,7 @@ pub struct Usart {
 impl tinyboot::traits::boot::Transport for Usart {}
 
 impl Usart {
+    /// Initialize the USART peripheral with the given configuration.
     pub fn new(config: &UsartConfig) -> Self {
         let tx_pin = config.mapping.tx_pin();
         let rx_pin = config.mapping.rx_pin();
