@@ -168,8 +168,8 @@ impl BootMetaStore for MockBootMeta {
     fn boot_state(&self) -> BootState {
         self.state
     }
-    fn trials_remaining(&self) -> u8 {
-        self.trials.count_ones() as u8
+    fn has_trials(&self) -> bool {
+        self.trials != 0
     }
     fn app_checksum(&self) -> u16 {
         self.checksum

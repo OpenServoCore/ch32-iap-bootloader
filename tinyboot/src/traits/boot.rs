@@ -41,14 +41,8 @@ pub trait BootMetaStore {
     /// Current boot lifecycle state.
     fn boot_state(&self) -> BootState;
 
-    /// Number of trial boots remaining (count of 1-bits in trials field).
-    fn trials_remaining(&self) -> u8;
-
     /// Returns true if any trial boots remain.
-    /// Override for targets without hardware popcount.
-    fn has_trials(&self) -> bool {
-        self.trials_remaining() > 0
-    }
+    fn has_trials(&self) -> bool;
 
     /// Stored CRC16 of the application firmware.
     fn app_checksum(&self) -> u16;

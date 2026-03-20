@@ -85,12 +85,6 @@ impl TBBootMetaStore for BootMetaStore {
         BootState::from_u8(self.state)
     }
 
-    fn trials_remaining(&self) -> u8 {
-        // Cheap: only has_trials() is used on this target (no popcount hw).
-        // Kept for trait compliance; returns 0 or 1.
-        if self.trials != 0 { 1 } else { 0 }
-    }
-
     fn has_trials(&self) -> bool {
         self.trials != 0
     }
