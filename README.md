@@ -82,15 +82,17 @@ The workspace uses **edition 2024**.
    tinyboot flash target/riscv32ec-unknown-none-elf/release/app --reset
    ```
 
-## Porting to a New Chip
+## Porting to a New MCU Family
 
-tinyboot's core crates (`tinyboot`, `tinyboot-protocol`, `tinyboot-cli`) are platform-agnostic. To add support for a new MCU family, you implement four traits and provide a minimal HAL. Here's what that looks like:
+Adding a new chip within an existing family (e.g. another CH32 variant) is straightforward — add the register definitions to the existing HAL crate and a feature flag. No new crates needed.
+
+Porting to an entirely new MCU family (e.g. STM32) requires a parallel set of crates. The core crates (`tinyboot`, `tinyboot-protocol`, `tinyboot-cli`) are platform-agnostic — you implement four traits and provide a minimal HAL. Here's what that looks like:
 
 ### 1. Create a HAL crate (`tinyboot-{chip}-hal`)
 
-Provide the bare minimum register-level operations your bootloader needs:
+Low-level register access shared between the boot and app crates. Provides the bare minimum operations both sides need:
 
-- **Flash** — unlock, erase page, write halfword/word, lock
+- **Flash** — unlock, erase page, write halfword/word, lock, option byte access
 - **GPIO** — configure pin mode, set high/low (for TX-enable if using RS-485)
 - **USART** — init with baud rate, blocking read byte, blocking write byte, flush
 - **RCC/clock** — enable peripheral clocks
@@ -100,7 +102,7 @@ For CH32, we use [ch32-metapac](https://github.com/ch32-rs/ch32-data) for regist
 
 ### 2. Create a boot crate (`tinyboot-{chip}-boot`)
 
-Implement the four platform traits from `tinyboot::traits::boot`:
+Implements the core boot traits using the HAL. Four traits from `tinyboot::traits::boot`:
 
 | Trait           | What to implement                                                                                                                         |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -113,10 +115,13 @@ Wire them together in a `Platform` struct and pass it to `Core::new(platform).ru
 
 ### 3. Create an app crate (`tinyboot-{chip}-app`)
 
-Implement `tinyboot::traits::app::BootClient`:
+Implements `tinyboot::traits::app::BootClient` using the HAL:
 
 - `confirm()` — transition boot state from Validating back to Idle
-- `request_update()` — set your boot request flag and reset into the bootloader
+- `request_update()` — set your boot request flag
+- `system_reset()` — reset the system
+
+The core `tinyboot::app::App` handles command polling and dispatch generically — you just provide the `BootClient` implementation.
 
 ### What you get for free
 
