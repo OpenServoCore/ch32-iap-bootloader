@@ -1,15 +1,25 @@
+use crate::ringbuf::RingBuf;
 use crate::traits::boot::{BootCtl, BootMetaStore, Platform, Storage, Transport};
 use crate::traits::{BootMode, BootState};
 use tinyboot_protocol::crc::{CRC_INIT, crc16};
 use tinyboot_protocol::frame::{Frame, InfoData, VerifyData};
 use tinyboot_protocol::{Cmd, ReadError, Status};
 
-/// Protocol dispatcher. Borrows the platform, owns the frame.
+/// Protocol dispatcher with write buffering.
+///
+/// Incoming write data is accumulated in a ring buffer and flushed to storage
+/// in page-sized chunks using fast page programming. The host must send a
+/// `Flush` command to commit any remaining partial page before `Verify`,
+/// or before skipping to a non-sequential address.
 pub struct Dispatcher<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> {
     /// Mutable reference to the platform peripherals.
     pub platform: &'a mut Platform<T, S, B, C>,
     /// Reusable frame buffer.
     pub frame: Frame,
+    /// Write buffer. Sized for 2 × 64-byte pages.
+    buf: RingBuf<128>,
+    /// Expected address of the next sequential write. `None` = accept any.
+    next_addr: Option<u32>,
 }
 
 impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> Dispatcher<'a, T, S, B, C> {
@@ -18,7 +28,19 @@ impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> Dispatcher<'a, 
         Self {
             platform,
             frame: Frame::default(),
+            buf: RingBuf::default(),
+            next_addr: None,
         }
+    }
+
+    /// Write `n` bytes from the buffer to storage, deriving the address from `next_addr`.
+    fn write_buf(&mut self, next: u32, n: usize) {
+        let addr = next - self.buf.len() as u32;
+        let data = self.buf.peek(n);
+        if self.platform.storage.write(addr, data).is_err() {
+            self.frame.status = Status::WriteError;
+        }
+        self.buf.consume(n);
     }
 
     /// Read a frame, dispatch the command, and send the response.
@@ -112,21 +134,21 @@ impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> Dispatcher<'a, 
                     self.frame.status = Status::Unsupported;
                 } else {
                     let addr = self.frame.addr;
-                    if addr >= capacity
-                        || addr + data_len as u32 > capacity
+                    if addr + data_len as u32 > capacity
                         || !addr.is_multiple_of(write_size)
+                        || self.next_addr.is_some_and(|n| n != addr)
                     {
                         self.frame.status = Status::AddrOutOfBounds;
-                    } else if self
-                        .platform
-                        .storage
-                        // SAFETY: data_len <= MAX_PAYLOAD validated by frame.read() overflow check
-                        .write(addr, unsafe {
-                            self.frame.data.raw.get_unchecked(..data_len)
-                        })
-                        .is_err()
-                    {
-                        self.frame.status = Status::WriteError;
+                    } else {
+                        // SAFETY: data_len <= MAX_PAYLOAD validated by frame.read()
+                        self.buf
+                            .push(unsafe { self.frame.data.raw.get_unchecked(..data_len) });
+                        let next = addr + data_len as u32;
+                        self.next_addr = Some(next);
+                        // Flush full page
+                        if self.buf.len() >= S::WRITE_SIZE {
+                            self.write_buf(next, S::WRITE_SIZE);
+                        }
                     }
                 }
             }
@@ -165,7 +187,14 @@ impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> Dispatcher<'a, 
                 };
                 self.platform.ctl.system_reset(mode);
             }
-            Cmd::Flush => {}
+            Cmd::Flush => {
+                if let Some(next) = self.next_addr {
+                    if !self.buf.is_empty() {
+                        self.write_buf(next, self.buf.len());
+                    }
+                    self.next_addr = None;
+                }
+            }
         }
 
         self.frame

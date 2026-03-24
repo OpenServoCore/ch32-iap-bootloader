@@ -342,6 +342,10 @@ fn write_from_updating_succeeds() {
         .load_request(Cmd::Write, 0, 4, &[0xDE, 0xAD, 0xBE, 0xEF]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Ok);
+    // Flush buffered write to storage
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
     assert_eq!(&d.platform.storage.data[..4], &[0xDE, 0xAD, 0xBE, 0xEF]);
     assert_eq!(d.platform.boot_meta.state, BootState::Updating);
 }
@@ -386,6 +390,8 @@ fn write_at_offset() {
         .load_request(Cmd::Write, 8, 4, &[0x01, 0x02, 0x03, 0x04]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Ok);
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
     assert_eq!(&d.platform.storage.data[8..12], &[0x01, 0x02, 0x03, 0x04]);
 }
 
@@ -496,6 +502,11 @@ fn full_update_cycle() {
     assert_eq!(d.frame.status, Status::Ok);
     assert_eq!(d.platform.boot_meta.state, BootState::Updating);
 
+    // Flush buffered writes
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+
     // Verify: Updating → Validating (app_size=4)
     d.platform
         .transport
@@ -529,6 +540,11 @@ fn reflash_from_validating() {
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Ok);
 
+    // Flush buffered writes
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+
     // Verify: Updating → Validating
     d.platform
         .transport
@@ -537,4 +553,53 @@ fn reflash_from_validating() {
     assert_eq!(d.frame.status, Status::Ok);
     assert_eq!(d.platform.boot_meta.state, BootState::Validating);
     assert_eq!(d.platform.boot_meta.app_size, fw.len() as u32);
+}
+
+// =============================================================================
+// Flush
+// =============================================================================
+
+#[test]
+fn flush_commits_buffered_write() {
+    let mut p = platform(BootState::Updating);
+    let mut d = Dispatcher::new(&mut p);
+    d.platform
+        .transport
+        .load_request(Cmd::Write, 0, 2, &[0xAA, 0xBB]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+    // Data is buffered (2 < WRITE_SIZE=4), not yet in storage
+    assert_eq!(d.platform.storage.data[0], 0xFF);
+
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+    assert_eq!(&d.platform.storage.data[..2], &[0xAA, 0xBB]);
+}
+
+#[test]
+fn flush_empty_is_ok() {
+    let mut p = platform(BootState::Idle);
+    let mut d = Dispatcher::new(&mut p);
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+}
+
+#[test]
+fn write_non_sequential_without_flush_rejected() {
+    let mut p = platform(BootState::Updating);
+    let mut d = Dispatcher::new(&mut p);
+
+    // First write at addr 0
+    d.platform.transport.load_request(Cmd::Write, 0, 4, &[0; 4]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+
+    // Non-sequential write without Flush
+    d.platform
+        .transport
+        .load_request(Cmd::Write, 128, 4, &[0; 4]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::AddrOutOfBounds);
 }
