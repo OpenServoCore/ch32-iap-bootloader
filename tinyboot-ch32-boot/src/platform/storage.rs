@@ -71,7 +71,7 @@ impl NorFlash for Storage {
         if to as usize > self.app_size {
             return Err(StorageError::OutOfBounds);
         }
-        let writer = FlashWriter::standard();
+        let writer = FlashWriter::usr();
         writer.erase_start();
         let mut addr = self.app_base + from;
         let end = self.app_base + to;
@@ -100,7 +100,7 @@ impl NorFlash for Storage {
         if offset as usize + bytes.len() > self.app_size {
             return Err(StorageError::OutOfBounds);
         }
-        let writer = FlashWriter::standard();
+        let writer = FlashWriter::usr();
         writer.write_start();
         let mut addr = self.app_base + offset;
         for pair in bytes.chunks_exact(2) {
