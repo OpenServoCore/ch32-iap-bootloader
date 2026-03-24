@@ -40,8 +40,8 @@ pub const BUF_LOAD_SIZE: usize = 4;
 
 const FTPG: u8 = 16; // FTPG bit - fast page programming - 64B
 const FTER: u8 = 17; // FTER bit - fast page erase - 64B
-const BUFRST: u8 = 18; // BUFRST bit - fast-program buffer reset
-const BUFLOAD: u8 = 19; // BUFLOAD bit - fast-program buffer load
+const BUFLOAD: u8 = 18; // BUFLOAD bit - fast-program buffer load
+const BUFRST: u8 = 19; // BUFRST bit - fast-program buffer reset
 
 const OBPG: u8 = 4; // OBPG bit - option byte programming
 const OBER: u8 = 5; // OBER bit - option byte erase
