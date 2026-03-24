@@ -165,6 +165,7 @@ impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl> Dispatcher<'a, 
                 };
                 self.platform.ctl.system_reset(mode);
             }
+            Cmd::Flush => {}
         }
 
         self.frame
