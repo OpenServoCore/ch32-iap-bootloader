@@ -691,7 +691,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "defmt",
  "embedded-io 0.7.1",
@@ -702,7 +702,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-ch32-app"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "critical-section",
  "defmt",
@@ -716,7 +716,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-ch32-boot"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "critical-section",
  "defmt",
@@ -729,7 +729,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-ch32-hal"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "ch32-metapac 0.0.6",
  "critical-section",
@@ -740,7 +740,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-protocol"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "defmt",
  "embedded-io 0.7.1",

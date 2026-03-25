@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.1] - 2026-03-25
+
+### Fixed
+
+- **UB in boot metadata reads** — fixed memory alignment issue by using `u32` buffer and casting back to `u8` array
+- **App version display** — fixed `app_version` read and app boot for user-flash example
+- **mtvec for apps behind bootloader** — `qingke-rt` hardcodes `mtvec = 0x0`, breaking interrupts in apps loaded at non-zero addresses; added `fix_mtvec!` macro to `tinyboot-ch32-app` that wraps `_setup_interrupts` via linker `--wrap` to rewrite `mtvec` to the actual vector table base
+- **Peripheral cleanup before app jump** — properly reset APB2 peripherals (`rcc::reset_apb2`) before jumping to app, preventing stale peripheral state from leaking into the application
+- **defmt panics on app→bootloader reset** — split bootloader runtime into `v2.S` (minimal, no .data/.bss init) and `v2_full.S` (full init for defmt); the `defmt` feature selects the appropriate startup
+
+### Added
+
+- **CLI logging** — `env_logger` support; set `RUST_LOG=debug` for protocol-level diagnostics
+
+### Optimized
+
+- ~180 bytes saved in system-flash bootloader via aggressive inlining, CRC/payload merge, batched RCC enable, custom `read_exact`/`write_all` overrides, and boot version cleanup
+- All CH32V003 chip variants added with CI coverage
+
 ## [0.2.0] - 2026-03-20
 
 ### Changed
