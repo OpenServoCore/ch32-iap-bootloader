@@ -5,4 +5,5 @@ fn main() {
     println!("cargo:rustc-link-arg=-Ttinyboot.x");
     println!("cargo:rustc-link-arg=-Tboot_request.x");
     println!("cargo:rustc-link-arg=-Tdefmt.x");
+    println!("cargo:rustc-link-arg=--wrap=_setup_interrupts");
 }
