@@ -3,6 +3,7 @@ use core::mem::MaybeUninit;
 use crate::crc::{CRC_INIT, crc16};
 use crate::sync::Sync;
 use crate::{Cmd, ReadError, Status};
+use tinyboot_macros::tb_assert;
 
 /// Maximum data payload size per frame.
 pub const MAX_PAYLOAD: usize = 64;
@@ -99,7 +100,7 @@ impl Default for Frame {
 
 impl Frame {
     fn as_bytes(&self, offset: usize, len: usize) -> &[u8] {
-        debug_assert!(offset + len <= core::mem::size_of::<Self>());
+        tb_assert!(offset + len <= core::mem::size_of::<Self>());
         unsafe {
             let ptr = (self as *const Self as *const u8).add(offset);
             core::slice::from_raw_parts(ptr, len)
@@ -107,7 +108,7 @@ impl Frame {
     }
 
     fn as_bytes_mut(&mut self, offset: usize, len: usize) -> &mut [u8] {
-        debug_assert!(offset + len <= core::mem::size_of::<Self>());
+        tb_assert!(offset + len <= core::mem::size_of::<Self>());
         unsafe {
             let ptr = (self as *mut Self as *mut u8).add(offset);
             core::slice::from_raw_parts_mut(ptr, len)

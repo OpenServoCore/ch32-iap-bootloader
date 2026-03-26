@@ -13,7 +13,8 @@ readme = "README.md"
 defmt = { workspace = true, optional = true }
 embedded-io = { workspace = true }
 embedded-io-async = { workspace = true }
+tinyboot-macros = { workspace = true }
 
 [features]
 default = []
-defmt = ["dep:defmt"]
+defmt = ["dep:defmt", "tinyboot-macros/defmt"]

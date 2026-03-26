@@ -712,6 +712,7 @@ dependencies = [
  "qingke",
  "tinyboot",
  "tinyboot-ch32-hal",
+ "tinyboot-macros",
  "tinyboot-protocol",
 ]
 
@@ -725,6 +726,7 @@ dependencies = [
  "embedded-storage",
  "tinyboot",
  "tinyboot-ch32-hal",
+ "tinyboot-macros",
  "tinyboot-protocol",
 ]
 
@@ -734,9 +736,11 @@ version = "0.2.1"
 dependencies = [
  "ch32-metapac 0.0.6",
  "critical-section",
+ "defmt",
  "embedded-hal 1.0.0",
  "embedded-io 0.7.1",
  "embedded-storage",
+ "tinyboot-macros",
 ]
 
 [[package]]
@@ -753,6 +757,7 @@ dependencies = [
  "defmt",
  "embedded-io 0.7.1",
  "embedded-io-async 0.7.0",
+ "tinyboot-macros",
 ]
 
 [[package]]
