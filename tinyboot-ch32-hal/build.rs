@@ -192,7 +192,7 @@ fn generate_pin_and_usart_mapping(out: &Path) -> Result<(), Box<dyn Error>> {
     // regs()
     writeln!(
         code,
-        "    pub fn regs(self) -> ch32_metapac::usart::Usart {{"
+        "    pub const fn regs(self) -> ch32_metapac::usart::Usart {{"
     )?;
     writeln!(code, "        match self {{")?;
     for ((peri, remap), group) in &groups {

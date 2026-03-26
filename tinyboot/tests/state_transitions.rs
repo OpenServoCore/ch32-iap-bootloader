@@ -191,6 +191,8 @@ impl BootMetaStore for MockBootMeta {
 }
 
 type TestPlatform = Platform<MockTransport, MockStorage, MockBootMeta, MockBootCtl>;
+// 2 × MockStorage ERASE_SIZE (64)
+const TEST_BUF_SIZE: usize = 128;
 
 fn platform(state: BootState) -> TestPlatform {
     Platform::new(
@@ -216,7 +218,7 @@ fn erase_data(byte_count: u16) -> [u8; 2] {
 #[test]
 fn erase_from_idle_transitions_to_updating() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Erase, 0, 2, &erase_data(64));
@@ -228,7 +230,7 @@ fn erase_from_idle_transitions_to_updating() {
 #[test]
 fn erase_from_updating_stays_updating() {
     let mut p = platform(BootState::Updating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Erase, 0, 2, &erase_data(64));
@@ -241,7 +243,7 @@ fn erase_from_updating_stays_updating() {
 fn erase_from_validating_transitions_to_updating_and_clears_checksum() {
     let mut p = platform(BootState::Validating);
     p.boot_meta.checksum = 0x1234;
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Erase, 0, 2, &erase_data(64));
@@ -254,7 +256,7 @@ fn erase_from_validating_transitions_to_updating_and_clears_checksum() {
 #[test]
 fn erase_validates_addr_alignment() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Erase, 32, 2, &erase_data(64));
@@ -265,7 +267,7 @@ fn erase_validates_addr_alignment() {
 #[test]
 fn erase_validates_byte_count_alignment() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Erase, 0, 2, &erase_data(32));
@@ -276,7 +278,7 @@ fn erase_validates_byte_count_alignment() {
 #[test]
 fn erase_validates_bounds() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Erase, 256, 2, &erase_data(64));
@@ -287,7 +289,7 @@ fn erase_validates_bounds() {
 #[test]
 fn erase_rejects_zero_byte_count() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Erase, 0, 2, &erase_data(0));
@@ -301,7 +303,7 @@ fn erase_bulk_multiple_pages() {
     p.storage.data[0] = 0x42;
     p.storage.data[64] = 0x42;
     p.storage.data[128] = 0x42;
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Erase, 0, 2, &erase_data(192));
@@ -324,7 +326,7 @@ fn erase_bulk_multiple_pages() {
 #[test]
 fn write_from_idle_rejected() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Write, 0, 4, &[0xDE, 0xAD, 0xBE, 0xEF]);
@@ -336,10 +338,14 @@ fn write_from_idle_rejected() {
 #[test]
 fn write_from_updating_succeeds() {
     let mut p = platform(BootState::Updating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Write, 0, 4, &[0xDE, 0xAD, 0xBE, 0xEF]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+    // Flush buffered write to storage
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Ok);
     assert_eq!(&d.platform.storage.data[..4], &[0xDE, 0xAD, 0xBE, 0xEF]);
@@ -349,7 +355,7 @@ fn write_from_updating_succeeds() {
 #[test]
 fn write_from_validating_rejected() {
     let mut p = platform(BootState::Validating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Write, 0, 4, &[0xDE, 0xAD, 0xBE, 0xEF]);
@@ -360,7 +366,7 @@ fn write_from_validating_rejected() {
 #[test]
 fn write_validates_addr_alignment() {
     let mut p = platform(BootState::Updating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform.transport.load_request(Cmd::Write, 1, 4, &[0; 4]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::AddrOutOfBounds);
@@ -369,7 +375,7 @@ fn write_validates_addr_alignment() {
 #[test]
 fn write_validates_bounds() {
     let mut p = platform(BootState::Updating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Write, 256, 4, &[0; 4]);
@@ -380,12 +386,14 @@ fn write_validates_bounds() {
 #[test]
 fn write_at_offset() {
     let mut p = platform(BootState::Updating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Write, 8, 4, &[0x01, 0x02, 0x03, 0x04]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Ok);
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
     assert_eq!(&d.platform.storage.data[8..12], &[0x01, 0x02, 0x03, 0x04]);
 }
 
@@ -399,7 +407,7 @@ fn write_at_offset() {
 #[test]
 fn verify_from_idle_rejected() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform.transport.load_request(Cmd::Verify, 4, 0, &[]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Unsupported);
@@ -411,7 +419,7 @@ fn verify_from_updating_transitions_to_validating() {
     let fw = [0x01, 0x02, 0x03, 0x04];
     p.storage.data[..4].copy_from_slice(&fw);
     let app_size = fw.len() as u32;
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform
         .transport
         .load_request(Cmd::Verify, app_size, 0, &[]);
@@ -428,7 +436,7 @@ fn verify_from_updating_transitions_to_validating() {
 #[test]
 fn verify_from_validating_rejected() {
     let mut p = platform(BootState::Validating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform.transport.load_request(Cmd::Verify, 4, 0, &[]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Unsupported);
@@ -437,7 +445,7 @@ fn verify_from_validating_rejected() {
 #[test]
 fn verify_rejects_zero_app_size() {
     let mut p = platform(BootState::Updating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform.transport.load_request(Cmd::Verify, 0, 0, &[]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::AddrOutOfBounds);
@@ -447,7 +455,7 @@ fn verify_rejects_zero_app_size() {
 #[test]
 fn verify_rejects_app_size_exceeding_capacity() {
     let mut p = platform(BootState::Updating);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     // capacity is 256, send 257
     d.platform.transport.load_request(Cmd::Verify, 257, 0, &[]);
     d.dispatch().unwrap();
@@ -462,7 +470,7 @@ fn verify_rejects_app_size_exceeding_capacity() {
 #[test]
 fn info_reports_geometry() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
     d.platform.transport.load_request(Cmd::Info, 0, 0, &[]);
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Ok);
@@ -480,7 +488,7 @@ fn info_reports_geometry() {
 #[test]
 fn full_update_cycle() {
     let mut p = platform(BootState::Idle);
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
 
     // Erase: Idle → Updating
     d.platform
@@ -495,6 +503,11 @@ fn full_update_cycle() {
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Ok);
     assert_eq!(d.platform.boot_meta.state, BootState::Updating);
+
+    // Flush buffered writes
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
 
     // Verify: Updating → Validating (app_size=4)
     d.platform
@@ -512,7 +525,7 @@ fn reflash_from_validating() {
     let mut p = platform(BootState::Validating);
     p.boot_meta.checksum = 0x1234;
     p.boot_meta.app_size = 4;
-    let mut d = Dispatcher::new(&mut p);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
 
     // Erase: Validating → Updating (reflash, clears checksum + app_size)
     d.platform
@@ -529,6 +542,11 @@ fn reflash_from_validating() {
     d.dispatch().unwrap();
     assert_eq!(d.frame.status, Status::Ok);
 
+    // Flush buffered writes
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+
     // Verify: Updating → Validating
     d.platform
         .transport
@@ -537,4 +555,53 @@ fn reflash_from_validating() {
     assert_eq!(d.frame.status, Status::Ok);
     assert_eq!(d.platform.boot_meta.state, BootState::Validating);
     assert_eq!(d.platform.boot_meta.app_size, fw.len() as u32);
+}
+
+// =============================================================================
+// Flush
+// =============================================================================
+
+#[test]
+fn flush_commits_buffered_write() {
+    let mut p = platform(BootState::Updating);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
+    d.platform
+        .transport
+        .load_request(Cmd::Write, 0, 2, &[0xAA, 0xBB]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+    // Data is buffered (2 < WRITE_SIZE=4), not yet in storage
+    assert_eq!(d.platform.storage.data[0], 0xFF);
+
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+    assert_eq!(&d.platform.storage.data[..2], &[0xAA, 0xBB]);
+}
+
+#[test]
+fn flush_empty_is_ok() {
+    let mut p = platform(BootState::Idle);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
+    d.platform.transport.load_request(Cmd::Flush, 0, 0, &[]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+}
+
+#[test]
+fn write_non_sequential_without_flush_rejected() {
+    let mut p = platform(BootState::Updating);
+    let mut d = Dispatcher::<_, _, _, _, TEST_BUF_SIZE>::new(&mut p);
+
+    // First write at addr 0
+    d.platform.transport.load_request(Cmd::Write, 0, 4, &[0; 4]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::Ok);
+
+    // Non-sequential write without Flush
+    d.platform
+        .transport
+        .load_request(Cmd::Write, 128, 4, &[0; 4]);
+    d.dispatch().unwrap();
+    assert_eq!(d.frame.status, Status::AddrOutOfBounds);
 }

@@ -77,12 +77,14 @@ pub enum Cmd {
     Verify = 0x03,
     /// Reset the device. `addr=0`: boot app, `addr=1`: enter bootloader.
     Reset = 0x04,
+    /// Flush buffered writes to storage.
+    Flush = 0x05,
 }
 
 impl Cmd {
     /// Returns true if `b` is a valid command code.
     pub fn is_valid(b: u8) -> bool {
-        b <= 0x04
+        b <= 0x05
     }
 }
 
@@ -130,7 +132,8 @@ mod tests {
     fn cmd_is_valid() {
         assert!(Cmd::is_valid(Cmd::Info as u8));
         assert!(Cmd::is_valid(Cmd::Reset as u8));
-        assert!(!Cmd::is_valid(0x05));
+        assert!(Cmd::is_valid(Cmd::Flush as u8));
+        assert!(!Cmd::is_valid(0x06));
         assert!(!Cmd::is_valid(0xFF));
     }
 

@@ -59,7 +59,7 @@ impl BootMetaStore {
         }
         let buf = unsafe { &*(buf.as_ptr() as *const [u8; 16]) };
 
-        let w = FlashWriter::ob();
+        let w = FlashWriter::opt();
         w.erase_start();
         w.erase(OB_BASE);
         w.operation_end();
@@ -80,7 +80,7 @@ impl BootMetaStore {
             return None;
         }
         let next = current & (current >> 1);
-        let w = FlashWriter::ob();
+        let w = FlashWriter::opt();
         w.write_start();
         w.write(META_OB_BASE + offset as u32 * 2, next as u16);
         w.operation_end();
