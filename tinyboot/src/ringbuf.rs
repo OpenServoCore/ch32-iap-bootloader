@@ -3,6 +3,7 @@
 /// Designed for use with `PageWriter` where `N = 2 * PAGE_SIZE`.
 /// When consumed in PAGE_SIZE-aligned chunks, `peek` always returns
 /// a contiguous slice (no wrap on the read side).
+#[repr(align(4))]
 pub struct RingBuf<const N: usize> {
     buf: core::mem::MaybeUninit<[u8; N]>,
     head: usize,
