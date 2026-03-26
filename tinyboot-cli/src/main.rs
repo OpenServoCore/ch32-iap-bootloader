@@ -72,23 +72,27 @@ enum Commands {
     },
 }
 
-/// Probe each available serial port for a tinyboot device (bootloader or app).
-/// Sends Info — both the bootloader and apps with poll_cmd respond to it.
+/// Probe available serial ports for a tinyboot device.
+/// Only checks USB serial ports (usbmodem, ttyACM, ttyUSB).
 fn detect_port(baud: u32) -> Result<String, Box<dyn std::error::Error>> {
     let ports = serialport::available_ports()?;
-    if ports.is_empty() {
-        return Err("no serial ports found".into());
+    let candidates: Vec<_> = ports
+        .iter()
+        .filter(|p| {
+            let name = &p.port_name;
+            name.contains("usbmodem") || name.contains("ttyACM") || name.contains("ttyUSB")
+        })
+        .collect();
+    if candidates.is_empty() {
+        return Err("no USB serial ports found".into());
     }
-    for p in &ports {
+    for p in &candidates {
         let serial = match serialport::new(&p.port_name, baud)
-            .timeout(std::time::Duration::from_millis(500))
+            .timeout(std::time::Duration::from_millis(100))
             .open()
         {
             Ok(s) => s,
-            Err(e) => {
-                eprintln!("  skipping {}: {e}", p.port_name);
-                continue;
-            }
+            Err(_) => continue,
         };
         let mut client = Client::new(Serial(serial));
         if client.info().is_ok() {
