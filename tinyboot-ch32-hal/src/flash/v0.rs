@@ -30,110 +30,103 @@ pub fn lock() {
     });
 }
 
-/// Flash/OB writer. Thin wrapper selecting CTLR bit positions.
-/// Requires `unlock()` to have been called first.
-pub struct FlashWriter {
-    erase_bit: u8,
-    write_bit: u8,
-}
-
 /// Flash page size in bytes (erase and fast-write granularity).
 pub const PAGE_SIZE: usize = 64;
 
 /// Fast-write buffer load size in bytes.
-pub const BUF_LOAD_SIZE: usize = 4;
+const BUF_LOAD_SIZE: usize = 4;
 
-const FTPG: u8 = 16; // FTPG bit - fast page programming - 64B
-const FTER: u8 = 17; // FTER bit - fast page erase - 64B
-const BUFLOAD: u8 = 18; // BUFLOAD bit - fast-program buffer load
-const BUFRST: u8 = 19; // BUFRST bit - fast-program buffer reset
+// --- User flash (fast page erase/write) ---
 
-const OBPG: u8 = 4; // OBPG bit - option byte programming
-const OBER: u8 = 5; // OBER bit - option byte erase
+/// Erase a single 64-byte page at `addr`.
+pub fn usr_erase(addr: u32) {
+    FLASH.ctlr().write(|w| {
+        w.set_obwre(true);
+        w.set_page_er(true);
+    });
+    FLASH.addr().write(|w| w.set_addr(addr));
+    FLASH.ctlr().write(|w| {
+        w.set_obwre(true);
+        w.set_page_er(true);
+        w.set_strt(true);
+    });
+    wait_busy();
+}
 
-const OBWRE: u8 = 9; // OBWRE bit - option byte write enabled. This needs to be 1 after unlock.
-const STRT: u8 = 6; // STRT bit - start operation
+/// Write up to one page (64 bytes) to flash at `addr`.
+/// `data` must be aligned to 4 bytes in length.
+pub fn usr_write(addr: u32, data: &[u8]) {
+    debug_assert!(
+        data.len().is_multiple_of(BUF_LOAD_SIZE),
+        "usr_write: len {} not aligned to {}",
+        data.len(),
+        BUF_LOAD_SIZE
+    );
+    // FTPG mode + buf reset
+    FLASH.ctlr().write(|w| {
+        w.set_obwre(true);
+        w.set_page_pg(true);
+        w.set_bufrst(true);
+    });
+    wait_busy();
 
-impl FlashWriter {
-    /// Writer for user flash (FTPG / FTER).
-    pub const fn usr() -> Self {
-        Self {
-            erase_bit: FTER,
-            write_bit: FTPG,
-        }
-    }
-
-    /// Writer for option bytes (OBPG / OBER).
-    pub const fn opt() -> Self {
-        Self {
-            erase_bit: OBER,
-            write_bit: OBPG,
-        }
-    }
-
-    /// Start write operation
-    #[inline(always)]
-    pub fn write_start(&self) {
-        let write_bit = self.write_bit as usize;
-        let ctlr_start = (1 << OBWRE) | (1 << write_bit);
-        FLASH.ctlr().write(|w| w.0 = ctlr_start);
-    }
-
-    /// Halfword (2-byte) write. used only for OB writes.
-    /// Use `fast_write_*` for flash writes.
-    #[inline(always)]
-    pub fn write(&self, addr: u32, value: u16) {
-        unsafe { core::ptr::write_volatile(addr as *mut u16, value) };
+    // Load words into buffer
+    let mut buf_addr = addr;
+    let mut ptr = data.as_ptr() as *const u32;
+    for _ in 0..data.len() / BUF_LOAD_SIZE {
+        // SAFETY: ptr advances within data bounds; caller ensures 4-byte alignment.
+        let word = unsafe { ptr.read() };
+        unsafe { core::ptr::write_volatile(buf_addr as *mut u32, word) };
+        FLASH.ctlr().write(|w| {
+            w.set_obwre(true);
+            w.set_page_pg(true);
+            w.set_bufload(true);
+        });
         wait_busy();
+        buf_addr += BUF_LOAD_SIZE as u32;
+        ptr = unsafe { ptr.add(1) };
     }
 
-    /// Start erase operation
-    #[inline(always)]
-    pub fn erase_start(&self) {
-        let erase_bit = self.erase_bit as usize;
-        let ctlr_start = (1 << OBWRE) | (1 << erase_bit);
-        FLASH.ctlr().write(|w| w.0 = ctlr_start);
-    }
+    // Program the page
+    FLASH.addr().write(|w| w.set_addr(addr));
+    FLASH.ctlr().write(|w| {
+        w.set_obwre(true);
+        w.set_page_pg(true);
+        w.set_strt(true);
+    });
+    wait_busy();
+}
 
-    /// Erase (64-byte page for flash, full OB erase for option bytes).
-    #[inline(always)]
-    pub fn erase(&self, addr: u32) {
-        let erase_bit = self.erase_bit as usize;
-        let ctlr = (1 << OBWRE) | (1 << erase_bit) | (1 << STRT);
+// --- Option bytes (standard 2-byte erase/write) ---
 
-        FLASH.addr().write(|w| w.set_addr(addr));
-        FLASH.ctlr().write(|w| w.0 = ctlr);
+/// Erase all option bytes.
+pub fn ob_erase() {
+    FLASH.ctlr().write(|w| {
+        w.set_obwre(true);
+        w.set_ober(true);
+    });
+    FLASH.addr().write(|w| w.set_addr(super::OB_BASE));
+    FLASH.ctlr().write(|w| {
+        w.set_obwre(true);
+        w.set_ober(true);
+        w.set_strt(true);
+    });
+    wait_busy();
+}
+
+/// Write option bytes starting at `addr`.
+/// Each byte in `data` is written as a halfword at stride-2 addresses
+/// (hardware auto-generates complement bytes).
+pub fn ob_write(addr: u32, data: &[u8]) {
+    FLASH.ctlr().write(|w| {
+        w.set_obwre(true);
+        w.set_obpg(true);
+    });
+    let mut ob_addr = addr;
+    for &byte in data {
+        unsafe { core::ptr::write_volatile(ob_addr as *mut u16, byte as u16) };
         wait_busy();
-    }
-
-    // End write or erase operation
-    #[inline(always)]
-    pub fn operation_end(&self) {
-        let ctlr_end = 1 << OBWRE; // preserve OB write enable bit
-        FLASH.ctlr().write(|w| w.0 = ctlr_end);
-    }
-
-    /// Clear the internal 64-byte fast-programming buffer (BUFRST).
-    pub fn fast_write_buf_reset(&self) {
-        let ctlr = (1 << OBWRE) | (1 << FTPG) | (1 << BUFRST);
-        FLASH.ctlr().write(|w| w.0 = ctlr);
-        wait_busy();
-    }
-
-    /// Load 4 bytes into the fast-programming buffer at `addr`.
-    pub fn fast_write_buf_load(&self, addr: u32, value: u32) {
-        unsafe { core::ptr::write_volatile(addr as *mut u32, value) };
-        let ctlr = (1 << OBWRE) | (1 << FTPG) | (1 << BUFLOAD);
-        FLASH.ctlr().write(|w| w.0 = ctlr);
-        wait_busy();
-    }
-
-    /// Program the buffered page to flash at `page_addr`.
-    pub fn fast_write_page_program(&self, page_addr: u32) {
-        FLASH.addr().write(|w| w.set_addr(page_addr));
-        let ctlr = (1 << OBWRE) | (1 << FTPG) | (1 << STRT);
-        FLASH.ctlr().write(|w| w.0 = ctlr);
-        wait_busy();
+        ob_addr += 2;
     }
 }
 

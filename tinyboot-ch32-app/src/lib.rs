@@ -86,17 +86,8 @@ impl TBBootClient for Ch32BootClient {
             buf[8..16].copy_from_slice(&meta);
             flash::unlock();
             iwdg::feed();
-            let w = flash::FlashWriter::opt();
-            w.erase_start();
-            w.erase(flash::OB_BASE);
-            w.operation_end();
-            w.write_start();
-            for (i, &byte) in buf.iter().enumerate() {
-                if byte != 0xFF {
-                    w.write(flash::OB_BASE + (i as u32 * 2), byte as u16);
-                }
-            }
-            w.operation_end();
+            flash::ob_erase();
+            flash::ob_write(flash::OB_BASE, &buf);
             flash::lock();
         });
     }

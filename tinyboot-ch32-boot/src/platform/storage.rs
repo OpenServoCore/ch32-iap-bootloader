@@ -3,7 +3,7 @@ use embedded_storage::nor_flash::{
 };
 use tinyboot::traits::boot::Storage as StorageTrait;
 
-use tinyboot_ch32_hal::flash::{BUF_LOAD_SIZE, FlashWriter, PAGE_SIZE};
+use tinyboot_ch32_hal::flash::{self, PAGE_SIZE};
 
 /// Flash storage configuration.
 pub struct StorageConfig {
@@ -63,23 +63,18 @@ impl NorFlash for Storage {
             "erase alignment: from={from}, to={to}"
         );
         debug_assert!(to as usize <= self.app_size, "erase out of bounds");
-        let writer = FlashWriter::usr();
-        writer.erase_start();
         let mut addr = self.app_base + from;
         let end = self.app_base + to;
         while addr < end {
-            writer.erase(addr);
+            flash::usr_erase(addr);
             addr += PAGE_SIZE as u32;
         }
-        writer.operation_end();
         Ok(())
     }
 
     fn write(&mut self, offset: u32, bytes: &[u8]) -> Result<(), Self::Error> {
         debug_assert!(
-            (offset as usize).is_multiple_of(PAGE_SIZE)
-                && bytes.len() <= PAGE_SIZE
-                && bytes.len().is_multiple_of(BUF_LOAD_SIZE),
+            (offset as usize).is_multiple_of(PAGE_SIZE) && bytes.len() <= PAGE_SIZE,
             "write alignment: offset={offset}, len={}",
             bytes.len()
         );
@@ -87,21 +82,7 @@ impl NorFlash for Storage {
             offset as usize + bytes.len() <= self.app_size,
             "write out of bounds"
         );
-        let page_addr = self.app_base + offset;
-        let writer = FlashWriter::usr();
-        writer.write_start();
-        writer.fast_write_buf_reset();
-        let mut addr = page_addr;
-        let mut ptr = bytes.as_ptr() as *const u32;
-        for _ in 0..bytes.len() / BUF_LOAD_SIZE {
-            // SAFETY: ptr advances within data bounds; RingBuf is repr(align(4)).
-            let word = unsafe { ptr.read() };
-            writer.fast_write_buf_load(addr, word);
-            addr += BUF_LOAD_SIZE as u32;
-            ptr = unsafe { ptr.add(1) };
-        }
-        writer.fast_write_page_program(page_addr);
-        writer.operation_end();
+        flash::usr_write(self.app_base + offset, bytes);
         Ok(())
     }
 }

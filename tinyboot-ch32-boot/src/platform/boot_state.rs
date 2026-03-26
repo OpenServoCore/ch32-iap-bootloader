@@ -1,9 +1,6 @@
 use tinyboot::traits::BootState;
 use tinyboot::traits::boot::BootMetaStore as TBBootMetaStore;
-use tinyboot_ch32_hal::flash::FlashWriter;
-
-const OB_BASE: u32 = 0x1FFFF800;
-const META_OB_BASE: u32 = OB_BASE + 16;
+use tinyboot_ch32_hal::flash::{self, META_OB_BASE, OB_BASE};
 
 #[derive(Debug)]
 pub enum BootMetaError {
@@ -59,17 +56,8 @@ impl BootMetaStore {
         }
         let buf = unsafe { &*(buf.as_ptr() as *const [u8; 16]) };
 
-        let w = FlashWriter::opt();
-        w.erase_start();
-        w.erase(OB_BASE);
-        w.operation_end();
-        w.write_start();
-        let mut addr = OB_BASE;
-        for &byte in buf.iter() {
-            w.write(addr, byte as u16);
-            addr += 2;
-        }
-        w.operation_end();
+        flash::ob_erase();
+        flash::ob_write(OB_BASE, buf);
     }
 
     /// Bit-clear step down on a single OB byte. Updates cache + OB.
@@ -80,10 +68,7 @@ impl BootMetaStore {
             return None;
         }
         let next = current & (current >> 1);
-        let w = FlashWriter::opt();
-        w.write_start();
-        w.write(META_OB_BASE + offset as u32 * 2, next as u16);
-        w.operation_end();
+        flash::ob_write(META_OB_BASE + offset as u32 * 2, &[next]);
         unsafe { *ptr.add(offset) = next };
         Some(next)
     }
