@@ -12,6 +12,7 @@
 #![no_main]
 
 use panic_halt as _;
+tinyboot_ch32_boot::boot_version!();
 
 use tinyboot_ch32_boot::{
     BaudRate, BootCtl, BootCtlConfig, BootMetaStore, Duplex, Platform, Pull, Storage,
@@ -52,7 +53,6 @@ fn main() -> ! {
     let boot_meta = BootMetaStore::default();
     let ctl = BootCtl::new(BootCtlConfig {});
 
-    const BOOT_VER: u16 = tinyboot_ch32_boot::pkg_version!();
-    let platform = Platform::new(transport, storage, boot_meta, ctl, BOOT_VER);
+    let platform = Platform::new(transport, storage, boot_meta, ctl);
     tinyboot_ch32_boot::run(platform);
 }

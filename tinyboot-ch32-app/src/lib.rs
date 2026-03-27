@@ -7,21 +7,10 @@ use tinyboot_ch32_hal::{flash, iwdg, pfic};
 // Re-exports so apps only need this one crate.
 pub use tinyboot::app::{App, AppConfig};
 pub use tinyboot::traits::app as traits;
-pub use tinyboot_protocol::pkg_version;
+pub use tinyboot::{app_version, pkg_version};
 
 #[doc(hidden)]
 pub use qingke;
-
-/// Define the `.tinyboot_version` static using the calling crate's version.
-/// Place this at module scope in your application binary.
-#[macro_export]
-macro_rules! app_version {
-    () => {
-        #[unsafe(link_section = ".tinyboot_version")]
-        #[used]
-        static _APP_VERSION: u16 = $crate::pkg_version!();
-    };
-}
 
 /// Fix `mtvec` for apps linked at a non-zero flash address (user-flash bootloader).
 ///
@@ -109,6 +98,7 @@ impl TBBootClient for Ch32BootClient {
 /// Create an [`App`] configured for CH32 hardware.
 ///
 /// Reads boot version from flash at `boot_base + boot_size - 2`.
+/// Reads app version from the `__tinyboot_version` linker symbol.
 pub fn new_app(
     boot_base: u32,
     boot_size: u32,
@@ -121,7 +111,7 @@ pub fn new_app(
             capacity: app_size,
             erase_size,
             boot_version: unsafe { boot_ver_addr.read_volatile() },
-            app_version: pkg_version!(),
+            app_version: tinyboot::tinyboot_version(),
         },
         Ch32BootClient,
     )
