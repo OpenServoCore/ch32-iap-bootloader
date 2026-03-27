@@ -22,23 +22,6 @@ jobs:
       - run: cargo doc -p tinyboot -p tinyboot-protocol --no-deps
       - run: cargo build -p tinyboot -p tinyboot-protocol --release
 
-  libs-ch32:
-    name: Libraries CH32 (${{ matrix.chip }})
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        chip:
-          - ch32v003f4p6
-          - ch32v003a4m6
-          - ch32v003f4u6
-          - ch32v003j4m6
-    steps:
-      - uses: actions/checkout@v4
-      - run: rustup toolchain install nightly --profile minimal --component rust-src,clippy
-      - run: cargo +nightly clippy -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target examples/ch32/boot/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec -- -D warnings
-      - run: cargo +nightly build -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target examples/ch32/boot/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec --release
-      - run: cargo +nightly doc -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target examples/ch32/boot/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec --no-deps
-
   cli:
     name: CLI
     runs-on: ubuntu-latest
@@ -54,8 +37,8 @@ jobs:
       - run: cargo build
       - run: cargo build --release
 
-  examples:
-    name: Examples (${{ matrix.chip }})
+  ch32:
+    name: CH32 (${{ matrix.chip }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -64,6 +47,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: rustup toolchain install nightly --profile minimal --component rust-src,rustfmt,clippy
+      - run: cargo +nightly clippy -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target examples/ch32/boot/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec -- -D warnings
+      - run: cargo +nightly build -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target examples/ch32/boot/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec --release
+      - run: cargo +nightly doc -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target examples/ch32/boot/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec --no-deps
       - run: cd examples/ch32/boot && cargo +nightly fmt --all -- --check
       - run: cd examples/ch32/boot && cargo +nightly clippy --features "${{ matrix.chip }},system-flash" -- -D warnings
       - run: cd examples/ch32/boot && cargo +nightly build --features "${{ matrix.chip }},system-flash" --release
