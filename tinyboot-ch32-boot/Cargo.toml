@@ -12,6 +12,7 @@ readme = "README.md"
 [dependencies]
 tinyboot-ch32-hal = { version = "0.2.1", path = "../tinyboot-ch32-hal", default-features = false }
 tinyboot = { version = "0.2.1", path = "../tinyboot", default-features = false }
+tinyboot-macros = { workspace = true }
 tinyboot-protocol = { version = "0.2.1", path = "../tinyboot-protocol" }
 critical-section = "1.2"
 defmt = { workspace = true, optional = true }
@@ -26,4 +27,4 @@ ch32v003j4m6 = ["tinyboot-ch32-hal/ch32v003j4m6"]
 ch32v003x4x6 = ["tinyboot-ch32-hal/ch32v003x4x6"]
 rt = []
 system-flash = ["tinyboot-ch32-hal/system-flash"]
-defmt = ["dep:defmt", "tinyboot/defmt"]
+defmt = ["dep:defmt", "tinyboot/defmt", "tinyboot-ch32-hal/defmt", "tinyboot-macros/defmt"]

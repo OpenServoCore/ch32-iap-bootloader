@@ -1,3 +1,5 @@
+use tinyboot_macros::tb_assert;
+
 const KEY1: u32 = 0x4567_0123;
 const KEY2: u32 = 0xCDEF_89AB;
 const FLASH: ch32_metapac::flash::Flash = ch32_metapac::FLASH;
@@ -5,7 +7,7 @@ const FLASH: ch32_metapac::flash::Flash = ch32_metapac::FLASH;
 #[inline(always)]
 fn wait_busy() {
     while FLASH.statr().read().bsy() {}
-    debug_assert!(
+    tb_assert!(
         !FLASH.statr().read().wrprterr(),
         "flash write protection error"
     );
@@ -57,15 +59,15 @@ pub fn usr_erase(addr: u32) {
 /// `data` length must be a multiple of 4 bytes, `addr` must be 4-byte aligned.
 pub fn usr_write(addr: u32, data: &[u8]) {
     let page_base = addr & !(PAGE_SIZE as u32 - 1);
-    debug_assert!(
+    tb_assert!(
         (addr as usize & (BUF_LOAD_SIZE - 1)) == 0,
         "usr_write: addr not word-aligned"
     );
-    debug_assert!(
+    tb_assert!(
         data.len().is_multiple_of(BUF_LOAD_SIZE),
         "usr_write: len not word-aligned"
     );
-    debug_assert!(
+    tb_assert!(
         addr + data.len() as u32 <= page_base + PAGE_SIZE as u32,
         "usr_write: crosses page boundary"
     );
@@ -125,7 +127,7 @@ pub fn ob_erase() {
 /// Each byte in `data` is written as a halfword at stride-2 addresses
 /// (hardware auto-generates complement bytes).
 pub fn ob_write(addr: u32, data: &[u8]) {
-    debug_assert!(
+    tb_assert!(
         (addr as usize & 1) == 0,
         "ob_write: addr not halfword-aligned"
     );

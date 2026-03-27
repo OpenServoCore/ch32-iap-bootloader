@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "tinyboot",
+    "tinyboot-macros",
     "tinyboot-ch32-hal",
     "tinyboot-ch32-boot",
     "tinyboot-ch32-app",
@@ -15,6 +16,7 @@ repository = "https://github.com/OpenServoCore/tinyboot"
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
+tinyboot-macros = { version = "0.2.1", path = "tinyboot-macros" }
 defmt = { version = "1.0" }
 defmt-rtt = { version = "1.1" }
 embedded-hal = "1"

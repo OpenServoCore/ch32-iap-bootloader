@@ -15,8 +15,11 @@ ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac"]
 embedded-hal = { workspace = true }
 embedded-io = { workspace = true }
 embedded-storage = { workspace = true }
+tinyboot-macros = { workspace = true }
 
 critical-section = "1.2"
+
+defmt = { workspace = true, optional = true }
 
 [build-dependencies]
 ch32-metapac = { version = "0.0.6", default-features = false, features = ["metadata"] }
@@ -32,3 +35,4 @@ ch32v003x4x6 = ["ch32-metapac/ch32v003x4x6"]
 # Bootloader runs from system flash (uses BOOT_MODE register for boot request).
 # When disabled, bootloader runs from user flash (uses RAM magic word for boot request).
 system-flash = []
+defmt = ["dep:defmt", "tinyboot-macros/defmt"]

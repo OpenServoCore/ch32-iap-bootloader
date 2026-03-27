@@ -8,7 +8,7 @@
     "rust-analyzer": {
       "initialization_options": {
         "cargo": {
-          "target": "riscv32imc-unknown-none-elf",
+          "target": "riscv32imac-unknown-none-elf",
           "features": ["ch32v003f4p6", "system-flash"]
         },
         "check": {
