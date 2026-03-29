@@ -6,7 +6,7 @@ Rust bootloader for resource-constrained microcontrollers. Fits in the CH32V003'
 
 ## Chip Compatibility
 
-tinyboot currently supports **UART / RS-485** transport. The table below tracks chip support status.
+tinyboot currently supports **UART / RS-485** transport. The table below tracks chip support status. Chips with hardware boot pins (e.g. BOOT0/BOOT1) require a small external circuit to allow firmware-controlled boot mode switching. Please see [GPIO-Controlled Boot Mode Selection](docs/boot-ctl.md) document for more information.
 
 ✅ Verified | ❓ Untested (same die, likely works — volunteer needed) | 📋 Planned
 
