@@ -74,22 +74,25 @@ impl Usart {
     pub fn new(config: &UsartConfig) -> Self {
         let tx_pin = config.mapping.tx_pin();
         let rx_pin = config.mapping.rx_pin();
-        let remap = config.mapping.remap_value();
         let regs = config.mapping.regs();
         let half_duplex = matches!(config.duplex, Duplex::Half);
+
+        let usart_n = config.mapping.peripheral_index();
 
         // Batch-enable GPIO port(s), AFIO, and USART1 clocks
         rcc::enable_apb2(
             (1 << (2 + tx_pin.port_index()))
                 | (1 << (2 + rx_pin.port_index()))
-                | 1        // AFIO (bit 0)
-                | (1 << 14), // USART1 (bit 14)
+                | 1 // AFIO
+                | rcc::usart_apb2_bit(usart_n),
         );
-
-        // Set pin remap if non-default
-        if remap != 0 {
-            afio::set_usart1_remap(remap);
+        // Enable USART on APB1 if not on APB2 (e.g. USART2/3)
+        if rcc::usart_apb2_bit(usart_n) == 0 {
+            rcc::enable_usart(usart_n);
         }
+
+        // Set pin remap
+        afio::set_usart_remap(usart_n, config.mapping.remap_value());
 
         // Configure pins
         gpio::configure(tx_pin, PinMode::AF_PUSH_PULL);

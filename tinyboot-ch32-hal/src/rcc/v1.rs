@@ -24,6 +24,13 @@ pub fn enable_usart(n: u8) {
     let bit = usart_apb2_bit(n);
     if bit != 0 {
         ch32_metapac::RCC.apb2pcenr().modify(|w| w.0 |= bit);
+    } else {
+        let rcc = ch32_metapac::RCC;
+        match n {
+            2 => rcc.apb1pcenr().modify(|w| w.set_usart2en(true)),
+            3 => rcc.apb1pcenr().modify(|w| w.set_usart3en(true)),
+            _ => {}
+        }
     }
 }
 
