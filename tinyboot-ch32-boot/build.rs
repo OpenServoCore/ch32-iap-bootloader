@@ -5,7 +5,6 @@ fn main() {
     // This includes boot_pin, flash_v0, etc.
     if let Ok(cfgs) = std::env::var("DEP_TINYBOOT_CH32_HAL_CFGS") {
         for cfg in cfgs.split(',').filter(|s| !s.is_empty()) {
-            println!("cargo::rustc-check-cfg=cfg({cfg})");
             println!("cargo:rustc-cfg={cfg}");
         }
     }

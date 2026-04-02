@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(unexpected_cfgs)]
 
 #[cfg(not(any(
     feature = "ch32v003f4p6",

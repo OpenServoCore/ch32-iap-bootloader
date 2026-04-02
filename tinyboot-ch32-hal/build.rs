@@ -17,7 +17,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for p in METADATA.peripherals {
         if let Some(regs) = &p.registers {
             let cfg = format!("{}_{}", regs.kind, regs.version);
-            println!("cargo::rustc-check-cfg=cfg({cfg})");
             println!("cargo:rustc-cfg={cfg}");
             cfgs.push(cfg);
         }
