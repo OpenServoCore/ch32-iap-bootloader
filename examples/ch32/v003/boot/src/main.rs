@@ -5,8 +5,8 @@
 //! **system-flash**: Runs from the 1920-byte system flash region, leaving all
 //! 16KB of user flash for the application.
 //!
-//! **user-flash**: Occupies first 8KB of user flash, with the application in
-//! the remaining 8KB.
+//! **user-flash**: Occupies first 2KB of user flash, with the application in
+//! the remaining 14KB.
 
 #![no_std]
 #![no_main]
@@ -15,10 +15,7 @@ use panic_halt as _;
 
 tinyboot_ch32_boot::boot_version!();
 
-use tinyboot_ch32_boot::{
-    BaudRate, BootCtl, BootMetaStore, Duplex, Platform, Pull, Storage, Usart, UsartConfig,
-    UsartMapping,
-};
+use tinyboot_ch32_boot::prelude::*;
 
 #[unsafe(export_name = "main")]
 fn main() -> ! {
@@ -43,11 +40,5 @@ fn main() -> ! {
         rx_pull: Pull::None,
         tx_en: None,
     });
-
-    let storage = Storage::default();
-    let boot_meta = BootMetaStore::default();
-    let ctl = BootCtl::default();
-
-    let platform = Platform::new(transport, storage, boot_meta, ctl);
-    tinyboot_ch32_boot::run(platform);
+    tinyboot_ch32_boot::run(transport);
 }
