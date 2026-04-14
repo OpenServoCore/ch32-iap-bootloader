@@ -1,5 +1,6 @@
 #![no_std]
 #![warn(missing_docs)]
+#![allow(unexpected_cfgs)]
 
 //! CH32 bootloader platform implementation.
 //!
