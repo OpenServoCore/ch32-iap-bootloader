@@ -1,5 +1,3 @@
-use tinyboot_macros::tb_assert;
-
 const KEY1: u32 = 0x4567_0123;
 const KEY2: u32 = 0xCDEF_89AB;
 const FLASH: ch32_metapac::flash::Flash = ch32_metapac::FLASH;
@@ -7,7 +5,7 @@ const FLASH: ch32_metapac::flash::Flash = ch32_metapac::FLASH;
 #[inline(always)]
 fn wait_busy() {
     while FLASH.statr().read().bsy() {}
-    tb_assert!(
+    debug_assert!(
         !FLASH.statr().read().wrprterr(),
         "flash write protection error"
     );
@@ -63,15 +61,15 @@ pub fn erase(addr: u32) {
 /// of 4 bytes, `addr` must be 4-byte aligned.
 pub fn write(addr: u32, data: &[u8]) {
     let page_base = addr & !(PAGE_SIZE as u32 - 1);
-    tb_assert!(
+    debug_assert!(
         (addr as usize & (BUF_LOAD_SIZE - 1)) == 0,
         "write: addr not word-aligned"
     );
-    tb_assert!(
+    debug_assert!(
         data.len().is_multiple_of(BUF_LOAD_SIZE),
         "write: len not word-aligned"
     );
-    tb_assert!(
+    debug_assert!(
         addr + data.len() as u32 <= page_base + PAGE_SIZE as u32,
         "write: crosses page boundary"
     );

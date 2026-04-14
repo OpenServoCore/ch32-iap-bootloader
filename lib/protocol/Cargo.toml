@@ -10,11 +10,5 @@ categories = ["embedded", "no-std"]
 readme = "README.md"
 
 [dependencies]
-defmt = { workspace = true, optional = true }
 embedded-io = { workspace = true }
 embedded-io-async = { workspace = true }
-tinyboot-macros = { workspace = true }
-
-[features]
-default = []
-defmt = ["dep:defmt", "tinyboot-macros/defmt"]

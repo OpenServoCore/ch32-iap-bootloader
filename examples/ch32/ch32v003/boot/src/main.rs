@@ -3,28 +3,17 @@
 //! Two flash modes available via feature flags:
 //!
 //! **system-flash**: Runs from the 1920-byte system flash region, leaving all
-//! 16KB of user flash for the application. No defmt (size constrained).
+//! 16KB of user flash for the application.
 //!
 //! **user-flash**: Occupies first 8KB of user flash, with the application in
-//! the remaining 8KB. defmt enabled for debugging.
+//! the remaining 8KB.
 
 #![no_std]
 #![no_main]
 
-#[cfg(feature = "system-flash")]
 use panic_halt as _;
 
-#[cfg(feature = "user-flash")]
-use defmt_rtt as _;
-
 tinyboot_ch32_boot::boot_version!();
-
-#[cfg(feature = "user-flash")]
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-    defmt::error!("panic: {}", defmt::Display2Format(info));
-    loop {}
-}
 
 use tinyboot_ch32_boot::{
     BaudRate, BootCtl, BootCtlConfig, BootMetaStore, Duplex, Platform, Pull, Storage,

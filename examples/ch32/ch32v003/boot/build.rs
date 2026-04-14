@@ -40,7 +40,6 @@ fn main() {
 
     if user_flash {
         println!("cargo:rustc-link-arg=-Ttb-user-flash.x");
-        println!("cargo:rustc-link-arg=-Tdefmt.x");
     }
 }
 

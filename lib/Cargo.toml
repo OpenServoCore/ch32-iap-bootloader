@@ -1,5 +1,5 @@
 [workspace]
-members = ["core", "protocol", "macros"]
+members = ["core", "protocol"]
 resolver = "2"
 
 [workspace.package]
@@ -8,9 +8,7 @@ repository = "https://github.com/OpenServoCore/tinyboot"
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-tinyboot-macros = { version = "0.2.1", path = "macros" }
 tinyboot-protocol = { version = "0.2.1", path = "protocol" }
-defmt = "1.0"
 embedded-io = "0.7"
 embedded-io-async = "0.7"
 embedded-storage = "0.3"

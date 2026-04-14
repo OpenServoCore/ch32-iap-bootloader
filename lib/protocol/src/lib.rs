@@ -65,7 +65,6 @@ macro_rules! pkg_version {
 /// Commands (host to device).
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Cmd {
     /// Query device info (capacity, erase size, versions, mode).
     Info = 0x00,
@@ -91,7 +90,6 @@ impl Cmd {
 /// Response status codes (device to host).
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Status {
     /// Frame is a request (not a response).
     Request = 0x00,

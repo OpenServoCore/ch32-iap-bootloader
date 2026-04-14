@@ -2,7 +2,6 @@ use embedded_storage::nor_flash::{
     ErrorType, NorFlash, NorFlashError, NorFlashErrorKind, ReadNorFlash,
 };
 use tinyboot::traits::boot::Storage as StorageTrait;
-use tinyboot_macros::tb_assert;
 
 use tinyboot_ch32_hal::flash::{self, PAGE_SIZE};
 
@@ -59,13 +58,13 @@ impl NorFlash for Storage {
     const ERASE_SIZE: usize = PAGE_SIZE;
 
     fn erase(&mut self, from: u32, to: u32) -> Result<(), Self::Error> {
-        tb_assert!(
+        debug_assert!(
             (from as usize).is_multiple_of(PAGE_SIZE) && (to as usize).is_multiple_of(PAGE_SIZE),
             "erase alignment: from={}, to={}",
             from,
             to
         );
-        tb_assert!(to as usize <= self.app_size, "erase out of bounds");
+        debug_assert!(to as usize <= self.app_size, "erase out of bounds");
         let mut addr = self.app_base + from;
         let end = self.app_base + to;
         while addr < end {
@@ -76,13 +75,13 @@ impl NorFlash for Storage {
     }
 
     fn write(&mut self, offset: u32, bytes: &[u8]) -> Result<(), Self::Error> {
-        tb_assert!(
+        debug_assert!(
             (offset as usize).is_multiple_of(PAGE_SIZE) && bytes.len() <= PAGE_SIZE,
             "write alignment: offset={}, len={}",
             offset,
             bytes.len()
         );
-        tb_assert!(
+        debug_assert!(
             offset as usize + bytes.len() <= self.app_size,
             "write out of bounds"
         );

@@ -14,7 +14,7 @@ defmt-rtt = { version = "1.1", optional = true }
 
 [features]
 system-flash = ["tinyboot-ch32-app/system-flash"]
-user-flash = ["dep:defmt", "dep:defmt-rtt", "tinyboot-ch32-app/defmt"]
+user-flash = ["dep:defmt", "dep:defmt-rtt"]
 ch32v003f4p6 = ["tinyboot-ch32-app/ch32v003f4p6", "ch32-hal/ch32v003f4p6", "ch32-hal/rt"]
 ch32v003a4m6 = ["tinyboot-ch32-app/ch32v003a4m6", "ch32-hal/ch32v003a4m6", "ch32-hal/rt"]
 ch32v003f4u6 = ["tinyboot-ch32-app/ch32v003f4u6", "ch32-hal/ch32v003f4u6", "ch32-hal/rt"]

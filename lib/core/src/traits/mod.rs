@@ -23,7 +23,6 @@ pub enum BootMode {
 /// 0x3F  Validating  (6 ones)
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum BootState {
     /// No update in progress. Normal app boot. Erased flash default.

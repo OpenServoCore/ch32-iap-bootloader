@@ -1,7 +1,6 @@
 use crate::protocol;
 use crate::traits::boot::{BootCtl, BootMetaStore, Platform, Storage, Transport};
 use crate::traits::{BootMode, BootState};
-use tinyboot_macros::tb_info;
 
 /// Bootloader entry point. Checks boot state, validates the app, and either
 /// boots the application or enters the protocol loop for firmware updates.
@@ -32,8 +31,6 @@ where
     /// boots the application or enters the protocol loop. Does not return.
     #[inline(always)]
     pub fn run(mut self) -> ! {
-        tb_info!("Bootloader started");
-
         match self.check_boot_state() {
             Ok(BootMode::App) => self.platform.ctl.system_reset(BootMode::App),
             Ok(BootMode::Bootloader) | Err(_) => self.enter_bootloader(),
@@ -42,7 +39,6 @@ where
 
     fn check_boot_state(&mut self) -> Result<BootMode, B::Error> {
         if self.platform.ctl.is_boot_requested() {
-            tb_info!("Boot requested");
             return Ok(BootMode::Bootloader);
         }
 
@@ -85,7 +81,6 @@ where
 
     #[inline(always)]
     fn enter_bootloader(&mut self) -> ! {
-        tb_info!("Entering bootloader mode");
         self.platform.storage.unlock();
 
         let mut d = protocol::Dispatcher::<_, _, _, _, BUF>::new(&mut self.platform);
