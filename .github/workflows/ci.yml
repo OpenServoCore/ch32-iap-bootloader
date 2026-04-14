@@ -52,11 +52,11 @@ jobs:
       - name: Install toolchain
         run: rustup toolchain install nightly --profile minimal --component rust-src,rustfmt,clippy
       - name: Clippy libraries
-        run: cd ch32 && cargo +nightly clippy -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target ../examples/ch32/v003/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec -- -D warnings
+        run: cd ch32 && cargo +nightly clippy -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --no-default-features --features ${{ matrix.chip }} --target ../examples/ch32/v003/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec -- -D warnings
       - name: Build libraries
-        run: cd ch32 && cargo +nightly build -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target ../examples/ch32/v003/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec --release
+        run: cd ch32 && cargo +nightly build -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --no-default-features --features ${{ matrix.chip }} --target ../examples/ch32/v003/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec --release
       - name: Doc libraries
-        run: cd ch32 && cargo +nightly doc -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --features ${{ matrix.chip }} --target ../examples/ch32/v003/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec --no-deps
+        run: cd ch32 && cargo +nightly doc -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app --no-default-features --features ${{ matrix.chip }} --target ../examples/ch32/v003/riscv32ec-unknown-none-elf.json -Zbuild-std=core -Zjson-target-spec --no-deps
       - name: Fmt examples
         run: cd examples/ch32/v003 && cargo +nightly fmt --all -- --check
       - name: Clippy boot (system-flash)
@@ -64,14 +64,14 @@ jobs:
       - name: Build boot (system-flash)
         run: cd examples/ch32/v003 && cargo +nightly build -p boot --features "${{ matrix.chip }},system-flash" --release
       - name: Clippy boot (user-flash)
-        run: cd examples/ch32/v003 && cargo +nightly clippy -p boot --features "${{ matrix.chip }},user-flash" -- -D warnings
+        run: cd examples/ch32/v003 && cargo +nightly clippy -p boot --no-default-features --features "${{ matrix.chip }},user-flash" -- -D warnings
       - name: Build boot (user-flash)
-        run: cd examples/ch32/v003 && cargo +nightly build -p boot --features "${{ matrix.chip }},user-flash" --release
+        run: cd examples/ch32/v003 && cargo +nightly build -p boot --no-default-features --features "${{ matrix.chip }},user-flash" --release
       - name: Clippy app (system-flash)
         run: cd examples/ch32/v003 && cargo +nightly clippy -p app --features "${{ matrix.chip }},system-flash" -- -D warnings
       - name: Build app (system-flash)
         run: cd examples/ch32/v003 && cargo +nightly build -p app --features "${{ matrix.chip }},system-flash" --release
       - name: Clippy app (user-flash)
-        run: cd examples/ch32/v003 && cargo +nightly clippy -p app --features "${{ matrix.chip }},user-flash" -- -D warnings
+        run: cd examples/ch32/v003 && cargo +nightly clippy -p app --no-default-features --features "${{ matrix.chip }},user-flash" -- -D warnings
       - name: Build app (user-flash)
-        run: cd examples/ch32/v003 && cargo +nightly build -p app --features "${{ matrix.chip }},user-flash" --release
+        run: cd examples/ch32/v003 && cargo +nightly build -p app --no-default-features --features "${{ matrix.chip }},user-flash" --release

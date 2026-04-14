@@ -13,6 +13,7 @@ defmt = "1.0"
 defmt-rtt = "1.1"
 
 [features]
+default = ["ch32v003f4p6", "system-flash"]
 system-flash = ["tinyboot-ch32-app/system-flash"]
 user-flash = []
 ch32v003f4p6 = ["tinyboot-ch32-app/ch32v003f4p6", "ch32-hal/ch32v003f4p6", "ch32-hal/rt"]

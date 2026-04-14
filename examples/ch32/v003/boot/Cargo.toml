@@ -8,6 +8,7 @@ tinyboot-ch32-boot = { path = "../../../../ch32/boot", default-features = false 
 panic-halt = "1.0"
 
 [features]
+default = ["ch32v003f4p6", "system-flash"]
 system-flash = ["tinyboot-ch32-boot/system-flash"]
 user-flash = []
 ch32v003f4p6 = ["tinyboot-ch32-boot/ch32v003f4p6", "tinyboot-ch32-boot/rt"]
