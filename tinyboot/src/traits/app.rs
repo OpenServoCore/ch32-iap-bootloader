@@ -6,7 +6,7 @@
 pub trait BootClient {
     /// Confirm a successful boot.
     ///
-    /// If the boot state is `Validating`, refreshes OB back to Idle.
+    /// If the boot state is `Validating`, refreshes metadata back to Idle.
     /// Otherwise does nothing (already confirmed or no update in progress).
     fn confirm(&mut self);
 

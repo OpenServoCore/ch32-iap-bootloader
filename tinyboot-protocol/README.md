@@ -36,7 +36,7 @@ Total frame size = 12 bytes overhead + payload. Maximum payload is 64 bytes (`MA
 | 0x00 | Info   | Host to Device | Query device info (capacity, erase size, versions, mode)                   |
 | 0x01 | Erase  | Host to Device | Erase `byte_count` bytes at addr (first erase transitions Idle → Updating) |
 | 0x02 | Write  | Host to Device | Write data at address                                                      |
-| 0x03 | Verify | Host to Device | Compute CRC16 over `addr` bytes of app, store checksum + state in OB       |
+| 0x03 | Verify | Host to Device | Compute CRC16 over `addr` bytes of app, store checksum + state in metadata |
 | 0x04 | Reset  | Host to Device | Reset the device                                                           |
 | 0x05 | Flush  | Host to Device | Flush buffered writes to storage                                           |
 
@@ -77,7 +77,7 @@ Write payloads must be padded to a 4-byte boundary. The device writes to flash 4
 
 ### Verify
 
-The `addr` field carries the application size in bytes. The device computes CRC16 over the first `addr` bytes of flash (the actual firmware, not the full region), stores the checksum and app size in OB metadata, and transitions to Validating state.
+The `addr` field carries the application size in bytes. The device computes CRC16 over the first `addr` bytes of flash (the actual firmware, not the full region), stores the checksum and app size in boot metadata, and transitions to Validating state.
 
 If Verify returns `CrcMismatch`, check that all Write payloads were padded to 4 bytes and that Flush was sent after the last Write (and before any address skips).
 

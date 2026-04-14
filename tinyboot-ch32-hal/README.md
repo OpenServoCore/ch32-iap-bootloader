@@ -8,7 +8,7 @@ Minimal hardware abstraction layer for tinyboot on CH32 microcontrollers. This i
 
 | Module         | Description                                           |
 | -------------- | ----------------------------------------------------- |
-| `flash`        | Flash read/write/erase, option byte access            |
+| `flash`        | Flash page erase/write, boot metadata address         |
 | `gpio`         | Pin configuration (input, output, alternate function) |
 | `usart`        | UART transmit/receive with embedded-io traits         |
 | `rcc`          | Clock configuration and peripheral reset              |

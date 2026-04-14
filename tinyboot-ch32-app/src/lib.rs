@@ -53,30 +53,19 @@ pub struct Ch32BootClient;
 impl TBBootClient for Ch32BootClient {
     fn confirm(&mut self) {
         critical_section::with(|_| {
-            let ob = flash::META_OB_BASE;
-            let state = unsafe { core::ptr::read_volatile(ob as *const u8) };
-            if BootState::from_u8(state) != BootState::Validating {
+            let addr = flash::meta_addr();
+            let mut meta = unsafe { core::ptr::read_volatile(addr as *const [u8; 8]) };
+            if BootState::from_u8(meta[0]) != BootState::Validating {
                 return;
             }
-            // Read current meta, set state=Idle and reset trials
-            let mut meta = [0xFFu8; 8];
-            for (i, slot) in meta.iter_mut().enumerate() {
-                *slot = unsafe { core::ptr::read_volatile((ob + i as u32 * 2) as *const u8) };
-            }
+
             meta[0] = BootState::Idle as u8;
             meta[1] = 0xFF;
-            // Read chip config, erase OB, rewrite
-            let mut buf = [0xFFu8; 16];
-            for (i, slot) in buf[..8].iter_mut().enumerate() {
-                *slot = unsafe {
-                    core::ptr::read_volatile((flash::OB_BASE + i as u32 * 2) as *const u8)
-                };
-            }
-            buf[8..16].copy_from_slice(&meta);
+
             flash::unlock();
             iwdg::feed();
-            flash::ob_erase();
-            flash::ob_write(flash::OB_BASE, &buf);
+            flash::erase(addr);
+            flash::write(addr, &meta);
             flash::lock();
         });
     }

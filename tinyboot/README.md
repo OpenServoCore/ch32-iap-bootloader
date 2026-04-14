@@ -34,15 +34,17 @@ Idle (0xFF) → Updating (0x7F) → Validating (0x3F) → Idle (0xFF)
 
 ### Persistence
 
-- **Step down**: 1→0 bit clear on a single OB byte. Cheap, no erase needed.
-- **Refresh**: Full OB erase + rewrite. Required when setting bits from 0→1 or writing new metadata (checksum).
-- **None**: State doesn't change, no OB write needed.
+- **Step down**: 1→0 bit clear on a single byte. Cheap, no erase needed.
+- **Refresh**: Full page erase + rewrite. Required when setting bits from 0→1 or writing new metadata (checksum).
+- **None**: State doesn't change, no flash write needed.
 
-### Metadata (stored in option bytes)
+### Metadata (stored in reserved flash page)
 
-| Field    | OB Offset | Description                                  |
-| -------- | --------- | -------------------------------------------- |
-| State    | +0        | Boot lifecycle state (0xFF/0x7F/0x3F)        |
-| Trials   | +2        | Trial boot counter, each boot clears one bit |
-| Checksum | +4,+6     | CRC16 of application firmware                |
-| App Size | +8..+14   | Firmware size in bytes (u32)                 |
+Address defined by `__tinyboot_meta_start` linker symbol in `memory.x`.
+
+| Field    | Offset | Size | Description                                  |
+| -------- | ------ | ---- | -------------------------------------------- |
+| State    | +0     | 1    | Boot lifecycle state (0xFF/0x7F/0x3F)        |
+| Trials   | +1     | 1    | Trial boot counter, each boot clears one bit |
+| Checksum | +2     | 2    | CRC16 of application firmware                |
+| App Size | +4     | 4    | Firmware size in bytes (u32)                 |
