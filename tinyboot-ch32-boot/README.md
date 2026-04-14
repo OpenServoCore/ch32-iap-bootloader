@@ -12,7 +12,7 @@ Implements the `tinyboot::traits::boot::Platform` trait by composing four compon
 | --------------- | ------------------------------------------------------------------------------------ |
 | `Usart`         | UART/RS-485 transport with configurable pin mapping, baud rate, and half/full duplex |
 | `Storage`       | Flash read/write/erase via `embedded-storage` traits                                 |
-| `BootMetaStore` | Option-byte-based boot state and checksum storage                                    |
+| `BootMetaStore` | Boot state and checksum storage in reserved flash page                               |
 | `BootCtl`       | Boot control (app jump, system reset, boot request detection)                        |
 
 ## Usage

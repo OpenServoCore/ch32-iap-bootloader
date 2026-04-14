@@ -1,6 +1,6 @@
 # tinyboot
 
-Rust bootloader for resource-constrained microcontrollers. Fits in the CH32V003's 1920-byte system flash with full trial boot, CRC16 app validation, OB-based metadata, and version reporting — leaving the entire 16KB user flash for the application.
+Rust bootloader for resource-constrained microcontrollers. Fits in the CH32V003's 1920-byte system flash with full trial boot, CRC16 app validation, and version reporting — leaving all but one page of user flash for the application (64 bytes reserved for boot metadata on V003; page size varies by chip).
 
 ![tinyboot demo](docs/demo.gif)
 
@@ -36,7 +36,7 @@ tinyboot currently supports **UART / RS-485** transport. The table below tracks 
 - **Tiny** — Fits in 1920 bytes of CH32V003 system flash, leaving all 16KB user flash for the application
 - **CRC16 validation** — Every frame is CRC16-CCITT protected; app image is verified end-to-end after flashing
 - **Trial boot** — New firmware gets a limited number of boot attempts; if the app doesn't confirm, the bootloader takes over automatically
-- **Boot state machine** — Idle / Updating / Validating lifecycle tracked in option bytes with forward-only bit transitions (no erase needed for state advances)
+- **Boot state machine** — Idle / Updating / Validating lifecycle tracked in a reserved flash page with forward-only bit transitions (no erase needed for state advances)
 - **Version reporting** — Boot and app versions packed into flash, queryable over the wire
 - **Configurable transport** — The protocol runs over any `embedded_io::Read + Write` stream. The CH32 implementation supports UART with configurable pins, baud rate, and optional TX-enable for RS-485 / DXL TTL, but the core is transport-agnostic — USB, SPI, Bluetooth, or WiFi would work just as well
 - **App-side integration** — The app can confirm a successful boot and request bootloader entry over the wire, enabling fully remote firmware updates without physical access
@@ -67,7 +67,7 @@ tinyboot currently supports **UART / RS-485** transport. The table below tracks 
 | [`tinyboot`](tinyboot/)                                     | core     | Platform-agnostic bootloader core (protocol dispatcher, boot state machine, app validation) |
 | [`tinyboot-protocol`](tinyboot-protocol/)                   | core     | Wire protocol (frame format, CRC16, commands)                                               |
 | [`tinyboot-ch32-hal`](tinyboot-ch32-hal/)                   | ch32     | Minimal HAL (flash, GPIO, USART, RCC)                                                       |
-| [`tinyboot-ch32-boot`](tinyboot-ch32-boot/)                 | ch32     | Bootloader platform (storage, boot control, OB metadata)                                    |
+| [`tinyboot-ch32-boot`](tinyboot-ch32-boot/)                 | ch32     | Bootloader platform (storage, boot control, boot metadata)                                  |
 | [`tinyboot-ch32-app`](tinyboot-ch32-app/)                   | ch32     | App-side boot client (confirm, request update)                                              |
 | [`tinyboot-cli`](tinyboot-cli/)                             | host     | CLI firmware flasher over UART                                                              |
 | [`examples/ch32/system-flash`](examples/ch32/system-flash/) | example  | Full-featured bootloader in 1920 bytes of system flash, all 16KB free for app               |
@@ -90,7 +90,7 @@ Porting to an entirely new MCU family (e.g. STM32) requires a parallel set of cr
 
 Low-level register access shared between the boot and app crates. Provides the bare minimum operations both sides need:
 
-- **Flash** — unlock, erase page, write halfword/word, lock, option byte access
+- **Flash** — unlock, erase page, write page, lock
 - **GPIO** — configure pin mode, set high/low (for TX-enable if using RS-485)
 - **USART** — init with baud rate, blocking read byte, blocking write byte, flush
 - **RCC/clock** — enable peripheral clocks
@@ -106,7 +106,7 @@ Implements the core boot traits using the HAL. Four traits from `tinyboot::trait
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `Transport`     | Any `embedded_io::Read + Write` stream — UART, RS-485, USB, SPI, even WiFi or Bluetooth. The protocol doesn't care what carries the bytes |
 | `Storage`       | Implement `embedded_storage::NorFlash` (erase, write) and provide `as_slice()` for zero-copy flash reads, plus `unlock()`                 |
-| `BootMetaStore` | Read/write boot state, trial counter, and app checksum from your chip's equivalent of option bytes or a reserved flash page               |
+| `BootMetaStore` | Read/write boot state, trial counter, and app checksum from a reserved flash page (address defined by linker symbol)                      |
 | `BootCtl`       | `is_boot_requested()` checks your boot flag (OB bit, RAM magic, GPIO pin, etc.); `system_reset()` resets or jumps to app                  |
 
 Wire them together in a `Platform` struct and pass it to `Core::new(platform).run()`.
@@ -147,10 +147,10 @@ Beyond the usual Cargo profile tricks (`opt-level = "z"`, LTO, `codegen-units = 
 - **`repr(C)` frame with union data** — CRC is computed directly over the struct memory via pointer cast; no serialization step, no intermediate buffer
 - **`MaybeUninit` frame buffer** — the 76-byte `Frame` struct is reused every iteration without zero-initialization
 - **Bit-bang CRC16** — no lookup table, trades speed for ~512 bytes of flash savings
-- **OB bit-clear state transitions** — forward state changes (Idle→Updating, trial consumption) flip 1→0 bits without erasing, avoiding the cost of a full erase+rewrite cycle and the code to preserve OB contents
+- **Bit-clear state transitions** — forward state changes (Idle→Updating, trial consumption) flip 1→0 bits without erasing, avoiding the cost of a full erase+rewrite cycle
 - **Avoid `memset`/`memcpy`** — these pull in expensive core routines; manual byte loops and volatile writes keep the linker from dragging in library code
 - **`.write()` over `.modify()`** — register writes use direct writes instead of read-modify-write, saving the read and mask operations
-- **Aggressive code deduplication** — shared flash operation primitives across erase, write, and OB operations (see the flash HAL)
+- **Aggressive code deduplication** — shared flash operation primitives across erase and write (see the flash HAL)
 
 ### Design approach
 

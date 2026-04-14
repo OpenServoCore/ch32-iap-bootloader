@@ -2,6 +2,9 @@
   "languages": {
     "Rust": {
       "format_on_save": "on"
+    },
+    "Markdown": {
+      "soft_wrap": "none"
     }
   },
   "lsp": {
