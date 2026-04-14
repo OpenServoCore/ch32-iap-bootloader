@@ -4,7 +4,7 @@ version = "3.2.1"
 edition = "2024"
 
 [dependencies]
-tinyboot-ch32-app = { path = "../../../tinyboot-ch32-app", default-features = false }
+tinyboot-ch32-app = { path = "../../../../ch32/app", default-features = false }
 embedded-io = "0.7"
 critical-section = "1"
 ch32-hal = { git = "https://github.com/ch32-rs/ch32-hal", default-features = false }

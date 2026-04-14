@@ -1,5 +1,5 @@
 [package]
-name = "tinyboot"
+name = "tinyboot-core"
 description = "Core bootloader library for tinyboot"
 version = "0.2.1"
 edition.workspace = true
@@ -15,7 +15,7 @@ embedded-io = { workspace = true }
 embedded-io-async = { workspace = true }
 embedded-storage = { workspace = true }
 tinyboot-macros = { workspace = true }
-tinyboot-protocol = { version = "0.2.1", path = "../tinyboot-protocol" }
+tinyboot-protocol = { workspace = true }
 
 [features]
 defmt = ["dep:defmt", "tinyboot-protocol/defmt", "tinyboot-macros/defmt"]

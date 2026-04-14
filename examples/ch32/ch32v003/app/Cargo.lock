@@ -614,18 +614,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tinyboot"
-version = "0.2.1"
-dependencies = [
- "defmt",
- "embedded-io 0.7.1",
- "embedded-io-async 0.7.0",
- "embedded-storage",
- "tinyboot-macros",
- "tinyboot-protocol",
-]
-
-[[package]]
 name = "tinyboot-ch32-app"
 version = "0.2.1"
 dependencies = [
@@ -634,8 +622,8 @@ dependencies = [
  "embedded-io 0.7.1",
  "embedded-io-async 0.7.0",
  "qingke",
- "tinyboot",
  "tinyboot-ch32-hal",
+ "tinyboot-core",
  "tinyboot-macros",
  "tinyboot-protocol",
 ]
@@ -651,6 +639,18 @@ dependencies = [
  "embedded-io 0.7.1",
  "embedded-storage",
  "tinyboot-macros",
+]
+
+[[package]]
+name = "tinyboot-core"
+version = "0.2.1"
+dependencies = [
+ "defmt",
+ "embedded-io 0.7.1",
+ "embedded-io-async 0.7.0",
+ "embedded-storage",
+ "tinyboot-macros",
+ "tinyboot-protocol",
 ]
 
 [[package]]
