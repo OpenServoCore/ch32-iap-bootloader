@@ -16,17 +16,9 @@ use panic_halt as _;
 tinyboot_ch32_boot::boot_version!();
 
 use tinyboot_ch32_boot::{
-    BaudRate, BootCtl, BootCtlConfig, BootMetaStore, Duplex, Platform, Pull, Storage,
-    StorageConfig, Usart, UsartConfig, UsartMapping,
+    BaudRate, BootCtl, BootMetaStore, Duplex, Platform, Pull, Storage, Usart, UsartConfig,
+    UsartMapping,
 };
-
-#[cfg(feature = "system-flash")]
-const APP_BASE: u32 = 0x0800_0000;
-
-#[cfg(feature = "user-flash")]
-const APP_BASE: u32 = 0x0800_0800;
-#[cfg(feature = "user-flash")]
-const APP_ENTRY: u32 = 0x0000_0800;
 
 #[unsafe(export_name = "main")]
 fn main() -> ! {
@@ -52,20 +44,9 @@ fn main() -> ! {
         tx_en: None,
     });
 
-    let app_size = (tinyboot_ch32_boot::meta_addr() - APP_BASE) as usize;
-    let storage = Storage::new(StorageConfig {
-        app_base: APP_BASE,
-        app_size,
-    });
+    let storage = Storage::default();
     let boot_meta = BootMetaStore::default();
-
-    #[cfg(feature = "system-flash")]
-    let ctl = BootCtl::new(BootCtlConfig {});
-
-    #[cfg(feature = "user-flash")]
-    let ctl = BootCtl::new(BootCtlConfig {
-        app_entry: APP_ENTRY,
-    });
+    let ctl = BootCtl::default();
 
     let platform = Platform::new(transport, storage, boot_meta, ctl);
     tinyboot_ch32_boot::run(platform);

@@ -12,21 +12,21 @@ SECTIONS
         KEEP(*(.vector_table.external_interrupts));
         KEEP(*(.vector_table.exceptions));
         *(.trap .trap.rust);
-    } > CODE AT> FLASH
+    } > CODE AT> BOOT
 
     .text : ALIGN(4)
     {
         KEEP(*(SORT_NONE(.handle_reset)));
         *(.init.rust);
         *(.text .text.*);
-    } > CODE AT> FLASH
+    } > CODE AT> BOOT
 
     .rodata : ALIGN(4)
     {
         *(.srodata .srodata.*);
         *(.rodata .rodata.*);
         . = ALIGN(4);
-    } > CODE AT> FLASH
+    } > CODE AT> BOOT
 
     .data : ALIGN(4)
     {
@@ -37,7 +37,7 @@ SECTIONS
         *(.data .data.*);
         . = ALIGN(4);
         _edata = .;
-    } > RAM AT> FLASH
+    } > RAM AT> BOOT
 
     .bss (NOLOAD) : ALIGN(4)
     {

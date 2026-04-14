@@ -3,27 +3,26 @@ use tinyboot::traits::boot::BootCtl as TBBootCtl;
 
 use tinyboot_ch32_hal::pfic;
 
-/// Boot control configuration.
-pub struct BootCtlConfig {
-    /// App entry point address (execution alias, not FPEC address).
-    /// Only used for user-flash bootloaders that must jump to the app.
-    #[cfg(not(feature = "system-flash"))]
-    pub app_entry: u32,
-}
-
 /// CH32 boot control (reset, boot mode selection).
+///
+/// In user-flash mode, caches the app entry point from `__tb_app_entry` linker symbol.
 pub struct BootCtl {
     #[cfg(not(feature = "system-flash"))]
     app_entry: u32,
 }
 
-impl BootCtl {
-    /// Create boot control from configuration.
+impl Default for BootCtl {
+    /// In user-flash mode, reads `__tb_app_entry` linker symbol for the app entry point.
     #[inline(always)]
-    pub fn new(_config: BootCtlConfig) -> Self {
+    fn default() -> Self {
         Self {
             #[cfg(not(feature = "system-flash"))]
-            app_entry: _config.app_entry,
+            app_entry: {
+                unsafe extern "C" {
+                    static __tb_app_entry: u8;
+                }
+                unsafe { &__tb_app_entry as *const u8 as u32 }
+            },
         }
     }
 }

@@ -86,19 +86,19 @@ impl TBBootClient for Ch32BootClient {
 
 /// Create an [`App`] configured for CH32 hardware.
 ///
-/// Reads boot version from flash at `boot_base + boot_size - 2`.
-/// Reads app version from the `__tb_version` linker symbol.
-pub fn new_app(
-    boot_base: u32,
-    boot_size: u32,
-    app_size: u32,
-    erase_size: u16,
-) -> App<Ch32BootClient> {
-    let boot_ver_addr = (boot_base + boot_size - 2) as *const u16;
+/// Reads boot version from `__tb_boot_version_addr`, app capacity from
+/// `__tb_app_capacity`, and erase size from `flash::PAGE_SIZE`.
+pub fn new_app() -> App<Ch32BootClient> {
+    unsafe extern "C" {
+        static __tb_boot_version_addr: u8;
+        static __tb_app_capacity: u8;
+    }
+    let boot_ver_addr = unsafe { &__tb_boot_version_addr as *const u8 as *const u16 };
+    let app_capacity = unsafe { &__tb_app_capacity as *const u8 as u32 };
     App::new(
         AppConfig {
-            capacity: app_size,
-            erase_size,
+            capacity: app_capacity,
+            erase_size: flash::PAGE_SIZE as u16,
             boot_version: unsafe { boot_ver_addr.read_volatile() },
             app_version: tinyboot::tinyboot_version(),
         },

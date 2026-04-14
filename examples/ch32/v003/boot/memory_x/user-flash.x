@@ -1,10 +1,7 @@
 /* CH32V003 user-flash bootloader memory layout.
  *
  * The bootloader occupies the first 2KB of the 16KB user flash.
- * Boot metadata is stored in the last page of user flash.
- *
- * CODE is the execution address (flash mirrored at 0x00000000).
- * FLASH is the programming address (FPEC requires 0x08000000-based addresses).
+ * Boot metadata occupies the last page of user flash.
  *
  * Flash map:
  *   0x0800_0000 .. 0x0800_07FF  bootloader   2KB
@@ -13,9 +10,13 @@
  */
 MEMORY
 {
-    CODE  : ORIGIN = 0x00000000, LENGTH = 2K  /* execution alias   */
-    FLASH : ORIGIN = 0x08000000, LENGTH = 2K  /* physical address  */
-    RAM   : ORIGIN = 0x20000000, LENGTH = 2K
-}
+    RAM  : ORIGIN = 0x20000000, LENGTH = 2K
 
-__tb_meta_start = 0x08000000 + 16K - 64;
+    /* Execution mirror of BOOT */
+    CODE : ORIGIN = 0x00000000, LENGTH = 2K
+
+    /* Physical flash addresses */
+    BOOT : ORIGIN = 0x08000000, LENGTH = 2K
+    APP  : ORIGIN = 0x08000000 + 2K, LENGTH = 14K - 64
+    META : ORIGIN = 0x08000000 + 16K - 64, LENGTH = 64
+}

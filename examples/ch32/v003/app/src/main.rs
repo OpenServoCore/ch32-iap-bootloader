@@ -33,23 +33,6 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-// --- Flash layout (must match bootloader) ---
-#[cfg(feature = "system-flash")]
-const BOOT_BASE: u32 = 0x1FFF_F000;
-#[cfg(feature = "system-flash")]
-const BOOT_SIZE: u32 = 1920;
-#[cfg(feature = "system-flash")]
-const APP_SIZE: u32 = 16 * 1024 - 64;
-
-#[cfg(feature = "user-flash")]
-const BOOT_BASE: u32 = 0x0800_0000;
-#[cfg(feature = "user-flash")]
-const BOOT_SIZE: u32 = 2 * 1024;
-#[cfg(feature = "user-flash")]
-const APP_SIZE: u32 = 14 * 1024 - 64;
-
-const ERASE_SIZE: u16 = 64;
-
 type Shared<T> = Mutex<RefCell<Option<T>>>;
 static LED: Shared<Output<'static>> = Mutex::new(RefCell::new(None));
 
@@ -83,7 +66,7 @@ fn main() -> ! {
     let mut tx = transport::Tx(tx);
 
     // Tinyboot app client
-    let mut app = tinyboot_ch32_app::new_app(BOOT_BASE, BOOT_SIZE, APP_SIZE, ERASE_SIZE);
+    let mut app = tinyboot_ch32_app::new_app();
     app.confirm();
 
     defmt::info!("Boot confirmed, app ready.");

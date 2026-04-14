@@ -13,14 +13,12 @@ pub mod platform;
 mod rt;
 
 pub use platform::{
-    BaudRate, BootCtl, BootCtlConfig, BootMetaStore, Duplex, Storage, StorageConfig, TxEnConfig,
-    Usart, UsartConfig,
+    BaudRate, BootCtl, BootMetaStore, Duplex, Storage, TxEnConfig, Usart, UsartConfig,
 };
 
 // Re-exports so boot examples only need this one crate.
 pub use tinyboot::traits::boot::Platform;
 pub use tinyboot::{boot_version, pkg_version};
-pub use tinyboot_ch32_hal::flash::meta_addr;
 pub use tinyboot_ch32_hal::gpio::Pull;
 pub use tinyboot_ch32_hal::{Pin, UsartMapping};
 

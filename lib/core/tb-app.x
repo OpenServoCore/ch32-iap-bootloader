@@ -1,17 +1,22 @@
 /* tinyboot app-side linker fragment.
  *
- * Expects memory.x to define FLASH and RAM regions.
+ * Expects memory.x to define CODE, BOOT, APP, META, and RAM regions,
+ * plus REGION_ALIAS("FLASH", CODE) for qingke-rt compatibility.
  * Add -Ttb-app.x to linker flags in your application binary. */
 
-/* App version placed immediately after all other flash content.
- * The bootloader reads it at storage[app_size - 2]. */
+/* Symbols derived from memory regions. */
+__tb_meta_start = ORIGIN(META);
+__tb_boot_version_addr = ORIGIN(BOOT) + LENGTH(BOOT) - 2;
+__tb_app_capacity = LENGTH(APP);
+
+/* App version placed immediately after all other flash content. */
 SECTIONS
 {
     .tb_version ALIGN(2) :
     {
         __tb_version = .;
         KEEP(*(.tb_version));
-    } > FLASH
+    } > CODE
 } INSERT AFTER .data;
 
 /* qingke-rt's link.x doesn't define a .uninit section.

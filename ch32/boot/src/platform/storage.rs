@@ -5,14 +5,6 @@ use tinyboot::traits::boot::Storage as StorageTrait;
 
 use tinyboot_ch32_hal::flash::{self, PAGE_SIZE};
 
-/// Flash storage configuration.
-pub struct StorageConfig {
-    /// Physical base address of the app region.
-    pub app_base: u32,
-    /// Size of the app region in bytes.
-    pub app_size: usize,
-}
-
 #[derive(Debug)]
 pub enum StorageError {
     NotAligned,
@@ -29,21 +21,25 @@ impl NorFlashError for StorageError {
 }
 
 /// CH32 flash storage implementing [`NorFlash`] and the tinyboot [`Storage`](tinyboot::traits::boot::Storage) trait.
+///
+/// Geometry comes from linker symbols (`__tb_app_base`, `__tb_meta_start`),
+/// cached in struct fields to avoid repeated address loads.
 pub struct Storage {
     app_base: u32,
     app_size: usize,
 }
 
-impl Storage {
-    /// Create storage from configuration.
+impl Default for Storage {
+    /// Reads `__tb_app_base` and `__tb_meta_start` linker symbols to determine the app region.
     #[inline(always)]
-    pub fn new(config: StorageConfig) -> Self {
-        Storage {
-            app_base: config.app_base,
-            app_size: config.app_size,
-        }
+    fn default() -> Self {
+        let app_base = flash::app_base();
+        let app_size = (flash::meta_addr() - app_base) as usize;
+        Storage { app_base, app_size }
     }
+}
 
+impl Storage {
     fn app_ptr(&self) -> *const u8 {
         self.app_base as *const u8
     }
