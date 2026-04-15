@@ -626,7 +626,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-ch32-app"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "critical-section",
  "embedded-io 0.7.1",
@@ -638,7 +638,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-ch32-boot"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "embedded-io 0.7.1",
  "embedded-storage",
@@ -649,7 +649,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-ch32-hal"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "ch32-metapac 0.0.6",
  "critical-section",
@@ -660,7 +660,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-core"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "embedded-io 0.7.1",
  "embedded-io-async 0.7.0",
@@ -670,7 +670,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-protocol"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "embedded-io 0.7.1",
  "embedded-io-async 0.7.0",

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.0] - 2026-04-15
+
+### Added
+
+- **CH32V103 support** — full bootloader and app support for CH32V103 (Qingke V3A core), including system-flash and user-flash modes with GPIO-controlled boot mode selection
+- **Decoupled protocol frame size from flash page size** — ring buffer accumulates writes and flushes full pages, with new Flush command and fast write support
+- **CLI retry on CRC mismatch** — automatic retry from page boundary on corrupted response frames
+
+### Changed
+
+- **Breaking:** reorganized into multi-workspace structure (lib/, ch32/, cli/, examples/)
+- **Breaking:** `tinyboot` crate renamed to `tinyboot-core`; CLI crate renamed from `tinyboot-cli` to `tinyboot`
+- **Breaking:** boot metadata moved from option bytes to last page of user flash
+- Switched to OpenServoCore fork of qingke/qingke-rt — fixes mtvec, adds V3A support; removed `fix_mtvec!()` workaround
+- Removed defmt and `tinyboot-macros` from bootloader
+- Multi-chip CI coverage for all CH32V003 and CH32V103 variants
+
+### Fixed
+
+- Protocol write alignment check only on first write
+- UB in boot metadata reads
+
 ## [0.2.1] - 2026-03-25
 
 ### Fixed

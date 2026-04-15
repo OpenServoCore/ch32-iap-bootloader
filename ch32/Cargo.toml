@@ -9,11 +9,11 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 # Cross-workspace deps (from lib/)
-tinyboot = { package = "tinyboot-core", version = "0.2.1", path = "../lib/core", default-features = false }
-tinyboot-protocol = { version = "0.2.1", path = "../lib/protocol" }
+tinyboot = { package = "tinyboot-core", version = "0.3.0", path = "../lib/core", default-features = false }
+tinyboot-protocol = { version = "0.3.0", path = "../lib/protocol" }
 
 # Internal deps
-tinyboot-ch32-hal = { version = "0.2.1", path = "hal", default-features = false }
+tinyboot-ch32-hal = { version = "0.3.0", path = "hal", default-features = false }
 
 # External deps
 embedded-hal = "1"
