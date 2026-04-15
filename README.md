@@ -1,7 +1,6 @@
 # tinyboot
 
 [![CI](https://github.com/OpenServoCore/tinyboot/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenServoCore/tinyboot/actions/workflows/ci.yml)
-[![tinyboot-core](https://img.shields.io/crates/v/tinyboot-core?label=tinyboot-core)](https://crates.io/crates/tinyboot-core)
 [![tinyboot](https://img.shields.io/crates/v/tinyboot?label=tinyboot)](https://crates.io/crates/tinyboot)
 [![tinyboot-ch32-boot](https://img.shields.io/crates/v/tinyboot-ch32-boot?label=tinyboot-ch32-boot)](https://crates.io/crates/tinyboot-ch32-boot)
 [![tinyboot-ch32-app](https://img.shields.io/crates/v/tinyboot-ch32-app?label=tinyboot-ch32-app)](https://crates.io/crates/tinyboot-ch32-app)
