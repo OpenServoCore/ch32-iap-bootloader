@@ -1,5 +1,13 @@
 # tinyboot
 
+[![CI](https://github.com/OpenServoCore/tinyboot/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenServoCore/tinyboot/actions/workflows/ci.yml)
+[![tinyboot-core](https://img.shields.io/crates/v/tinyboot-core?label=tinyboot-core)](https://crates.io/crates/tinyboot-core)
+[![tinyboot](https://img.shields.io/crates/v/tinyboot?label=tinyboot)](https://crates.io/crates/tinyboot)
+[![tinyboot-ch32-boot](https://img.shields.io/crates/v/tinyboot-ch32-boot?label=tinyboot-ch32-boot)](https://crates.io/crates/tinyboot-ch32-boot)
+[![tinyboot-ch32-app](https://img.shields.io/crates/v/tinyboot-ch32-app?label=tinyboot-ch32-app)](https://crates.io/crates/tinyboot-ch32-app)
+[![MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE-MIT)
+[![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE-APACHE)
+
 Rust bootloader for resource-constrained microcontrollers. Fits in the CH32V003's 1920-byte system flash with full trial boot, CRC16 app validation, and version reporting — leaving all but one page of user flash for the application (64 bytes reserved for boot metadata on V003; page size varies by chip).
 
 ![tinyboot demo](docs/demo.gif)
