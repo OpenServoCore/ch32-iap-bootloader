@@ -1,15 +1,11 @@
-//! CH32 bootloader platform implementation.
+//! CH32 bootloader entry point.
 //!
-//! Provides storage, transport, boot control, and metadata backed by the
-//! CH32 flash controller.
+//! Wires the CH32 [`crate::platform`] implementations into
+//! [`tinyboot::Core`] and exposes a minimal [`run`] helper.
 
-/// Platform components (storage, transport, boot control, metadata).
-pub mod platform;
+use crate::platform::{BootCtl, BootMetaStore, Storage};
 
-pub use platform::{
-    BaudRate, BootCtl, BootCtlConfig, BootMetaStore, Duplex, Storage, TxEnConfig, Usart,
-    UsartConfig,
-};
+pub use crate::platform::{BaudRate, BootCtlConfig, Duplex, TxEnConfig, Usart, UsartConfig};
 
 // Re-exports so boot examples only need this one module.
 pub use crate::hal::gpio::Pull;
