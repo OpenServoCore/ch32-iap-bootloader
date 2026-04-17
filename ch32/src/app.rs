@@ -5,6 +5,7 @@ use crate::platform::BootMetaStore;
 
 // Re-exports so apps only need this one module.
 pub use crate::hal::Pin;
+pub use crate::hal::gpio::Level;
 pub use crate::platform::BootCtl;
 pub use tinyboot_core::app::{App, AppConfig};
 pub use tinyboot_core::traits;

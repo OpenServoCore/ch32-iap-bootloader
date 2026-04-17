@@ -16,7 +16,7 @@ mod hand_off;
 mod run_mode;
 
 #[cfg(boot_src_gpio)]
-use crate::hal::Pin;
+use crate::hal::{Pin, gpio};
 #[cfg(feature = "system-flash")]
 use boot_src::BootSrc;
 
@@ -31,10 +31,10 @@ impl BootCtl {
     core::cfg_select! {
         boot_src_gpio => {
             #[inline(always)]
-            pub fn new(pin: Pin, active_high: bool, reset_delay_cycles: u32) -> Self {
+            pub fn new(pin: Pin, system_flash_level: gpio::Level, reset_delay_cycles: u32) -> Self {
                 Self {
                     run_mode: run_mode::Active::new(),
-                    boot_src: boot_src::Active::new(pin, active_high, reset_delay_cycles),
+                    boot_src: boot_src::Active::new(pin, system_flash_level, reset_delay_cycles),
                     hand_off: hand_off::Active::new(),
                 }
             }

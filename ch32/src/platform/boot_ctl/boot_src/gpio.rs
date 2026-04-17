@@ -9,18 +9,20 @@ use crate::hal::{Pin, gpio, rcc};
 
 pub struct GpioBootSrcCtl {
     pin: Pin,
-    active_high: bool,
+    /// Level to drive for [`BootSrc::SystemFlash`]; the inverse is driven for
+    /// [`BootSrc::UserFlash`].
+    system_flash_level: gpio::Level,
     reset_delay_cycles: u32,
 }
 
 impl GpioBootSrcCtl {
     #[inline(always)]
-    pub fn new(pin: Pin, active_high: bool, reset_delay_cycles: u32) -> Self {
+    pub fn new(pin: Pin, system_flash_level: gpio::Level, reset_delay_cycles: u32) -> Self {
         rcc::enable_gpio(pin.port_index());
         gpio::configure(pin, gpio::PinMode::OUTPUT_PUSH_PULL);
         let s = Self {
             pin,
-            active_high,
+            system_flash_level,
             reset_delay_cycles,
         };
         s.drive(BootSrc::SystemFlash);
@@ -35,11 +37,10 @@ impl GpioBootSrcCtl {
 
     #[inline(always)]
     fn drive(&self, src: BootSrc) {
-        let service = src == BootSrc::SystemFlash;
-        let level = if self.active_high == service {
-            gpio::Level::High
-        } else {
-            gpio::Level::Low
+        let level = match (src, self.system_flash_level) {
+            (BootSrc::SystemFlash, l) => l,
+            (BootSrc::UserFlash, gpio::Level::High) => gpio::Level::Low,
+            (BootSrc::UserFlash, gpio::Level::Low) => gpio::Level::High,
         };
         gpio::set_level(self.pin, level);
     }

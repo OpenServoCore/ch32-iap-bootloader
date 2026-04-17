@@ -62,9 +62,9 @@ fn main() -> ! {
     // Tinyboot app client
     let mut app = tinyboot_ch32::app::new_app(core::cfg_select! {
         feature = "system-flash" => tinyboot_ch32::app::BootCtl::new(
-            tinyboot_ch32::app::Pin::PB1, // adjust to your BOOT0 control pin
-            true,                         // active_high
-            8000,                         // reset_delay_cycles (~1ms @ 8MHz for RC settle)
+            tinyboot_ch32::app::Pin::PB1,             // adjust to your BOOT0 control pin
+            tinyboot_ch32::app::Level::High,          // pin level that selects system flash
+            8000,                                     // reset_delay_cycles (~1ms @ 8MHz for RC settle)
         ),
         _ => tinyboot_ch32::app::BootCtl::new(),
     });

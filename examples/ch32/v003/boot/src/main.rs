@@ -32,7 +32,7 @@ fn main() -> ! {
     //
     // For RS-485 half-duplex with a transceiver DE pin:
     //   duplex: Duplex::Half,
-    //   tx_en: Some(TxEnConfig { pin: Pin::PC2, active_high: true }),
+    //   tx_en: Some(TxEnConfig { pin: Pin::PC2, tx_level: Level::High }),
     let transport = Usart::new(&UsartConfig {
         duplex: Duplex::Full,
         baud: BaudRate::B115200,

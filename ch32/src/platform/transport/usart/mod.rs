@@ -34,8 +34,8 @@ pub enum BaudRate {
 pub struct TxEnConfig {
     /// GPIO pin connected to DE/RE.
     pub pin: Pin,
-    /// `true` if the transceiver enables TX on logic high.
-    pub active_high: bool,
+    /// Pin level that enables TX on the transceiver; the inverse is driven for RX.
+    pub tx_level: gpio::Level,
 }
 
 /// USART peripheral configuration.
@@ -104,12 +104,7 @@ impl Usart {
         if let Some(ref tx_en) = config.tx_en {
             rcc::enable_gpio(tx_en.pin.port_index());
             gpio::configure(tx_en.pin, PinMode::OUTPUT_PUSH_PULL);
-            let rx_level = if tx_en.active_high {
-                gpio::Level::Low
-            } else {
-                gpio::Level::High
-            };
-            gpio::set_level(tx_en.pin, rx_level);
+            gpio::set_level(tx_en.pin, invert(tx_en.tx_level));
         }
 
         // Initialize USART
@@ -124,25 +119,23 @@ impl Usart {
     #[inline(always)]
     fn set_tx_mode(&self) {
         if let Some(ref tx_en) = self.tx_en {
-            let level = if tx_en.active_high {
-                gpio::Level::High
-            } else {
-                gpio::Level::Low
-            };
-            gpio::set_level(tx_en.pin, level);
+            gpio::set_level(tx_en.pin, tx_en.tx_level);
         }
     }
 
     #[inline(always)]
     fn set_rx_mode(&self) {
         if let Some(ref tx_en) = self.tx_en {
-            let level = if tx_en.active_high {
-                gpio::Level::Low
-            } else {
-                gpio::Level::High
-            };
-            gpio::set_level(tx_en.pin, level);
+            gpio::set_level(tx_en.pin, invert(tx_en.tx_level));
         }
+    }
+}
+
+#[inline(always)]
+fn invert(level: gpio::Level) -> gpio::Level {
+    match level {
+        gpio::Level::High => gpio::Level::Low,
+        gpio::Level::Low => gpio::Level::High,
     }
 }
 

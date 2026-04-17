@@ -37,10 +37,11 @@ fn main() -> ! {
 
     // V103 system-flash: GPIO drives the external BOOT0 control circuit
     // (RC or flip-flop). Adjust pin + reset delay to your hardware
-    // (RC: ~1ms settle at 8MHz = 8000 cycles; flip-flop: 0).
+    // (RC: ~1ms settle at 8MHz = 8000 cycles; flip-flop: 0). The level argument
+    // is the pin state that selects the system-flash bootloader.
     // V103 user-flash: no GPIO boot control needed, uses RAM magic word.
     let ctl = core::cfg_select! {
-        feature = "system-flash" => BootCtl::new(Pin::PB1, true, 8000),
+        feature = "system-flash" => BootCtl::new(Pin::PB1, Level::High, 8000),
         _ => BootCtl::new(),
     };
 
