@@ -10,7 +10,7 @@ categories = ["embedded", "no-std", "hardware-support"]
 links = "tinyboot-ch32"
 
 [dependencies]
-tinyboot = { workspace = true, default-features = false }
+tinyboot-core = { workspace = true, default-features = false }
 ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac"] }
 embedded-hal = { workspace = true }
 embedded-io = { workspace = true }
@@ -46,7 +46,7 @@ repository = "https://github.com/OpenServoCore/tinyboot"
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-tinyboot = { package = "tinyboot-core", version = "0.3.0", path = "../lib/core", default-features = false }
+tinyboot-core = { version = "0.3.0", path = "../lib/core", default-features = false }
 tinyboot-ch32 = { version = "0.3.0", path = ".", default-features = false }
 embedded-hal = "1"
 embedded-io = "0.7"

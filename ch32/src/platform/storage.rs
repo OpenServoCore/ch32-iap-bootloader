@@ -1,7 +1,7 @@
 use embedded_storage::nor_flash::{
     ErrorType, NorFlash, NorFlashError, NorFlashErrorKind, ReadNorFlash,
 };
-use tinyboot::traits::Storage as StorageTrait;
+use tinyboot_core::traits::Storage as StorageTrait;
 
 use crate::hal::flash::{self, PAGE_SIZE};
 
@@ -20,7 +20,7 @@ impl NorFlashError for StorageError {
     }
 }
 
-/// CH32 flash storage implementing [`NorFlash`] and the tinyboot [`Storage`](tinyboot::traits::Storage) trait.
+/// CH32 flash storage implementing [`NorFlash`] and the tinyboot [`Storage`](tinyboot_core::traits::Storage) trait.
 ///
 /// Geometry comes from linker symbols (`__tb_app_base`, `__tb_meta_base`),
 /// cached in struct fields to avoid repeated address loads.

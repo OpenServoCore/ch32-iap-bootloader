@@ -1,8 +1,8 @@
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 
 use crate::hal::flash;
-use tinyboot::traits::BootMetaStore as TBBootMetaStore;
-use tinyboot::traits::BootState;
+use tinyboot_core::traits::BootMetaStore as TBBootMetaStore;
+use tinyboot_core::traits::BootState;
 
 #[derive(Debug)]
 pub enum BootMetaError {

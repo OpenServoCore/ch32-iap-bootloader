@@ -66,7 +66,7 @@ pub struct Usart {
     tx_en: Option<TxEnConfig>,
 }
 
-impl tinyboot::traits::Transport for Usart {}
+impl tinyboot_core::traits::Transport for Usart {}
 
 impl Usart {
     /// Initialize the USART peripheral with the given configuration.

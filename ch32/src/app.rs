@@ -1,16 +1,16 @@
 //! CH32 app-side tinyboot client.
 
-use tinyboot::traits::BootClient as TBBootClient;
-use tinyboot::traits::BootState;
+use tinyboot_core::traits::BootClient as TBBootClient;
+use tinyboot_core::traits::BootState;
 
 use crate::hal::{boot_request, flash, iwdg, pfic};
 
 // Re-exports so apps only need this one module.
 pub use crate::hal::Pin;
 pub use boot_request::Config as BootCtlConfig;
-pub use tinyboot::app::{App, AppConfig};
-pub use tinyboot::traits;
-pub use tinyboot::{app_version, pkg_version};
+pub use tinyboot_core::app::{App, AppConfig};
+pub use tinyboot_core::traits;
+pub use tinyboot_core::{app_version, pkg_version};
 
 /// CH32 boot client implementation.
 pub struct BootClient {
@@ -69,7 +69,7 @@ pub fn new_app(boot_ctl: boot_request::Config) -> App<BootClient> {
             capacity: app_capacity,
             erase_size: flash::PAGE_SIZE as u16,
             boot_version: unsafe { boot_ver_addr.read_volatile() },
-            app_version: tinyboot::tinyboot_version(),
+            app_version: tinyboot_core::tinyboot_version(),
         },
         BootClient { config: boot_ctl },
     )
