@@ -21,7 +21,7 @@ use critical_section::Mutex;
 
 use defmt_rtt as _;
 
-tinyboot_ch32_app::app_version!();
+tinyboot_ch32::app::app_version!();
 
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
@@ -61,13 +61,13 @@ fn main() -> ! {
 
     // Tinyboot app client
     #[cfg(feature = "system-flash")]
-    let mut app = tinyboot_ch32_app::new_app(tinyboot_ch32_app::BootCtlConfig {
-        pin: tinyboot_ch32_app::Pin::PB1, // adjust to your BOOT0 control pin
+    let mut app = tinyboot_ch32::app::new_app(tinyboot_ch32::app::BootCtlConfig {
+        pin: tinyboot_ch32::app::Pin::PB1, // adjust to your BOOT0 control pin
         active_high: true,
     });
 
     #[cfg(not(feature = "system-flash"))]
-    let mut app = tinyboot_ch32_app::new_app(tinyboot_ch32_app::BootCtlConfig);
+    let mut app = tinyboot_ch32::app::new_app(tinyboot_ch32::app::BootCtlConfig);
 
     app.confirm();
 

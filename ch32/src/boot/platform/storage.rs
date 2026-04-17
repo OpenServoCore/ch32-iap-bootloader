@@ -3,7 +3,7 @@ use embedded_storage::nor_flash::{
 };
 use tinyboot::traits::boot::Storage as StorageTrait;
 
-use tinyboot_ch32_hal::flash::{self, PAGE_SIZE};
+use crate::hal::flash::{self, PAGE_SIZE};
 
 #[derive(Debug)]
 pub enum StorageError {
@@ -92,7 +92,7 @@ impl StorageTrait for Storage {
     }
 
     fn unlock(&mut self) {
-        tinyboot_ch32_hal::flash::unlock();
+        crate::hal::flash::unlock();
     }
 }
 

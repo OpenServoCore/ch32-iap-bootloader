@@ -20,7 +20,7 @@
 #[derive(Copy, Clone)]
 pub struct Config {
     /// GPIO pin connected to the BOOT0 control circuit.
-    pub pin: crate::Pin,
+    pub pin: super::Pin,
     /// `true` if driving HIGH selects system flash (default for RC circuit).
     pub active_high: bool,
 }
@@ -40,8 +40,8 @@ pub struct Config;
 pub fn init(_config: &Config) {
     #[cfg(boot_req_gpio)]
     {
-        use crate::gpio::{self, PinMode};
-        crate::rcc::enable_gpio(_config.pin.port_index());
+        use super::gpio::{self, PinMode};
+        super::rcc::enable_gpio(_config.pin.port_index());
         gpio::configure(_config.pin, PinMode::OUTPUT_PUSH_PULL);
         drive_boot_pin(_config.pin, _config.active_high, true);
     }
@@ -50,7 +50,7 @@ pub fn init(_config: &Config) {
 /// Check whether a boot-to-bootloader request is pending.
 pub fn is_boot_requested() -> bool {
     #[cfg(boot_req_reg)]
-    return crate::flash::boot_mode();
+    return super::flash::boot_mode();
 
     #[cfg(boot_req_ram)]
     return unsafe { core::ptr::read_volatile(&raw const __tb_boot_request) == BOOT_REQUEST_MAGIC };
@@ -59,7 +59,7 @@ pub fn is_boot_requested() -> bool {
 /// Signal (or clear) boot intent for the next reset.
 pub fn set_boot_request(_config: &Config, request: bool) {
     #[cfg(boot_req_reg)]
-    crate::flash::set_boot_mode(request);
+    super::flash::set_boot_mode(request);
 
     #[cfg(boot_req_ram)]
     {
@@ -82,8 +82,8 @@ unsafe extern "C" {
 }
 
 #[cfg(boot_req_gpio)]
-fn drive_boot_pin(pin: crate::Pin, active_high: bool, system_flash: bool) {
-    use crate::gpio::{self, Level};
+fn drive_boot_pin(pin: super::Pin, active_high: bool, system_flash: bool) {
+    use super::gpio::{self, Level};
     let level = if active_high == system_flash {
         Level::High
     } else {

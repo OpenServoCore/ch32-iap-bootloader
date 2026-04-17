@@ -13,10 +13,11 @@
 #![no_main]
 
 use panic_halt as _;
+use tinyboot_ch32_rt as _;
 
-tinyboot_ch32_boot::boot_version!();
+tinyboot_ch32::boot::boot_version!();
 
-use tinyboot_ch32_boot::prelude::*;
+use tinyboot_ch32::boot::prelude::*;
 
 #[unsafe(export_name = "main")]
 fn main() -> ! {
@@ -46,5 +47,5 @@ fn main() -> ! {
     #[cfg(not(feature = "system-flash"))]
     let config = BootCtlConfig;
 
-    tinyboot_ch32_boot::run(transport, config);
+    tinyboot_ch32::boot::run(transport, config);
 }

@@ -1,7 +1,7 @@
 use tinyboot::traits::BootMode;
 use tinyboot::traits::boot::BootCtl as TBBootCtl;
 
-use tinyboot_ch32_hal::{boot_request, pfic};
+use crate::hal::{boot_request, pfic};
 
 /// CH32 boot control (reset, boot mode selection).
 ///
@@ -45,8 +45,8 @@ impl TBBootCtl for BootCtl {
         }
         #[cfg(not(feature = "system-flash"))]
         if !bootloader {
-            tinyboot_ch32_hal::flash::lock();
-            tinyboot_ch32_hal::rcc::reset_apb2();
+            crate::hal::flash::lock();
+            crate::hal::rcc::reset_apb2();
             pfic::jump(self.app_entry)
         }
         pfic::system_reset()

@@ -4,14 +4,15 @@ version = "1.2.3"
 edition.workspace = true
 
 [dependencies]
-tinyboot-ch32-boot = { path = "../../../../ch32/boot", default-features = false }
+tinyboot-ch32 = { path = "../../../../ch32", default-features = false }
+tinyboot-ch32-rt = { path = "../../../../ch32/rt" }
 panic-halt = "1.0"
 
 [features]
 default = ["ch32v103c8t6", "system-flash"]
-system-flash = ["tinyboot-ch32-boot/system-flash"]
+system-flash = ["tinyboot-ch32/system-flash"]
 user-flash = []
-ch32v103c6t6 = ["tinyboot-ch32-boot/ch32v103c6t6", "tinyboot-ch32-boot/rt"]
-ch32v103c8t6 = ["tinyboot-ch32-boot/ch32v103c8t6", "tinyboot-ch32-boot/rt"]
-ch32v103c8u6 = ["tinyboot-ch32-boot/ch32v103c8u6", "tinyboot-ch32-boot/rt"]
-ch32v103r8t6 = ["tinyboot-ch32-boot/ch32v103r8t6", "tinyboot-ch32-boot/rt"]
+ch32v103c6t6 = ["tinyboot-ch32/ch32v103c6t6"]
+ch32v103c8t6 = ["tinyboot-ch32/ch32v103c8t6"]
+ch32v103c8u6 = ["tinyboot-ch32/ch32v103c8u6"]
+ch32v103r8t6 = ["tinyboot-ch32/ch32v103r8t6"]

@@ -12,7 +12,7 @@ dependencies = [
  "defmt-rtt",
  "embedded-io 0.7.1",
  "qingke-rt",
- "tinyboot-ch32-app",
+ "tinyboot-ch32",
 ]
 
 [[package]]
@@ -44,7 +44,8 @@ name = "boot"
 version = "1.2.3"
 dependencies = [
  "panic-halt",
- "tinyboot-ch32-boot",
+ "tinyboot-ch32",
+ "tinyboot-ch32-rt",
 ]
 
 [[package]]
@@ -625,30 +626,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tinyboot-ch32-app"
-version = "0.3.0"
-dependencies = [
- "critical-section",
- "embedded-io 0.7.1",
- "embedded-io-async 0.7.0",
- "tinyboot-ch32-hal",
- "tinyboot-core",
- "tinyboot-protocol",
-]
-
-[[package]]
-name = "tinyboot-ch32-boot"
-version = "0.3.0"
-dependencies = [
- "embedded-io 0.7.1",
- "embedded-storage",
- "tinyboot-ch32-hal",
- "tinyboot-core",
- "tinyboot-protocol",
-]
-
-[[package]]
-name = "tinyboot-ch32-hal"
+name = "tinyboot-ch32"
 version = "0.3.0"
 dependencies = [
  "ch32-metapac 0.0.6",
@@ -656,7 +634,12 @@ dependencies = [
  "embedded-hal 1.0.0",
  "embedded-io 0.7.1",
  "embedded-storage",
+ "tinyboot-core",
 ]
+
+[[package]]
+name = "tinyboot-ch32-rt"
+version = "0.3.0"
 
 [[package]]
 name = "tinyboot-core"

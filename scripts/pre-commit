@@ -3,21 +3,25 @@ set -e
 
 # --- Core libraries (host target) ---
 (cd lib && cargo fmt --all --check)
-(cd lib && cargo clippy -p tinyboot-core -p tinyboot-protocol --all-targets -- -D warnings)
-(cd lib && cargo test -p tinyboot-core -p tinyboot-protocol)
+(cd lib && cargo clippy --all-targets -- -D warnings)
+(cd lib && cargo test)
+
+# --- CLI (host target) ---
+(cd cli && cargo fmt --all --check)
+(cd cli && cargo clippy -- -D warnings)
 
 # --- CH32 libraries (embedded target, needs nightly + build-std) ---
 V003_JSON=../examples/ch32/v003/riscv32ec-unknown-none-elf.json
 
 # V003
-(cd ch32 && cargo +nightly clippy -p tinyboot-ch32-hal -p tinyboot-ch32-boot -p tinyboot-ch32-app \
+(cd ch32 && cargo +nightly clippy \
   --no-default-features --features ch32v003f4p6 \
   --target $V003_JSON \
   -Zbuild-std=core -Zjson-target-spec \
   -- -D warnings)
 
 # V103
-(cd ch32 && cargo +nightly clippy -p tinyboot-ch32-hal -p tinyboot-ch32-boot \
+(cd ch32 && cargo +nightly clippy \
   --no-default-features --features ch32v103c8t6 \
   --target riscv32imc-unknown-none-elf \
   -- -D warnings)

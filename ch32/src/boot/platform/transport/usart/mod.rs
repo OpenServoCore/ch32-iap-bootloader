@@ -2,9 +2,9 @@ use core::convert::Infallible;
 
 use embedded_io::ErrorType;
 
-use tinyboot_ch32_hal::gpio::{PinMode, Pull};
-use tinyboot_ch32_hal::{Pin, UsartMapping};
-use tinyboot_ch32_hal::{afio, gpio, rcc, usart};
+use crate::hal::gpio::{PinMode, Pull};
+use crate::hal::{Pin, UsartMapping};
+use crate::hal::{afio, gpio, rcc, usart};
 /// USART duplex mode.
 pub enum Duplex {
     /// Half-duplex (single wire, RS-485).
@@ -62,7 +62,7 @@ pub struct UsartConfig {
 
 /// USART transport with optional RS-485 TX-enable control.
 pub struct Usart {
-    regs: tinyboot_ch32_hal::usart::Regs,
+    regs: crate::hal::usart::Regs,
     tx_en: Option<TxEnConfig>,
 }
 

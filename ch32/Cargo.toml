@@ -1,5 +1,43 @@
+[package]
+name = "tinyboot-ch32"
+description = "tinyboot ch32 implementation"
+version = "0.3.0"
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords = ["bootloader", "embedded", "ch32", "risc-v", "no-std"]
+categories = ["embedded", "no-std", "hardware-support"]
+links = "tinyboot-ch32"
+
+[dependencies]
+tinyboot = { workspace = true, default-features = false }
+ch32-metapac = { version = "0.0.6", default-features = false, features = ["pac"] }
+embedded-hal = { workspace = true }
+embedded-io = { workspace = true }
+embedded-storage = { workspace = true }
+critical-section = "1.2"
+
+[build-dependencies]
+ch32-metapac = { version = "0.0.6", default-features = false, features = ["metadata"] }
+
+[features]
+default = ["ch32v003f4p6"]
+
+# supported chip variants
+ch32v003f4p6 = ["ch32-metapac/ch32v003f4p6"]
+ch32v003a4m6 = ["ch32-metapac/ch32v003a4m6"]
+ch32v003f4u6 = ["ch32-metapac/ch32v003f4u6"]
+ch32v003j4m6 = ["ch32-metapac/ch32v003j4m6"]
+ch32v103c6t6 = ["ch32-metapac/ch32v103c6t6"]
+ch32v103c8t6 = ["ch32-metapac/ch32v103c8t6"]
+ch32v103c8u6 = ["ch32-metapac/ch32v103c8u6"]
+ch32v103r8t6 = ["ch32-metapac/ch32v103r8t6"]
+
+system-flash = []
+
 [workspace]
-members = ["hal", "boot", "app"]
+members = [".", "rt"]
+default-members = [".", "rt"]
 resolver = "2"
 
 [workspace.package]
@@ -8,17 +46,10 @@ repository = "https://github.com/OpenServoCore/tinyboot"
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-# Cross-workspace deps (from lib/)
 tinyboot = { package = "tinyboot-core", version = "0.3.0", path = "../lib/core", default-features = false }
-tinyboot-protocol = { version = "0.3.0", path = "../lib/protocol" }
-
-# Internal deps
-tinyboot-ch32-hal = { version = "0.3.0", path = "hal", default-features = false }
-
-# External deps
+tinyboot-ch32 = { version = "0.3.0", path = ".", default-features = false }
 embedded-hal = "1"
 embedded-io = "0.7"
-embedded-io-async = "0.7"
 embedded-storage = "0.3"
 
 [profile.dev]

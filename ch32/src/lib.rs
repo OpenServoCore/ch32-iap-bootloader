@@ -1,6 +1,12 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
+//! tinyboot bootloader and app library for CH32 microcontrollers.
+//!
+//! - [`hal`] — chip-level register access (flash, gpio, usart, …).
+//! - [`boot`] — bootloader-side platform (storage, transport, boot control).
+//! - [`app`]  — app-side tinyboot client.
+
 #[cfg(not(any(
     feature = "ch32v003f4p6",
     feature = "ch32v003a4m6",
@@ -16,17 +22,6 @@ compile_error!(
      features = [\"ch32v003f4p6\"]"
 );
 
-mod generated {
-    include!(concat!(env!("OUT_DIR"), "/generated.rs"));
-}
-pub use generated::{Pin, UsartMapping};
-
-pub mod afio;
-pub mod flash;
-pub mod gpio;
-pub mod iwdg;
-pub mod pfic;
-pub mod rcc;
-pub mod usart;
-
-pub mod boot_request;
+pub mod app;
+pub mod boot;
+pub mod hal;

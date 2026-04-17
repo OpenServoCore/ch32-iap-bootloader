@@ -1,7 +1,3 @@
-#![no_std]
-#![warn(missing_docs)]
-#![allow(unexpected_cfgs)]
-
 //! CH32 bootloader platform implementation.
 //!
 //! Provides storage, transport, boot control, and metadata backed by the
@@ -10,29 +6,26 @@
 /// Platform components (storage, transport, boot control, metadata).
 pub mod platform;
 
-#[cfg(all(target_arch = "riscv32", feature = "rt"))]
-mod rt;
-
 pub use platform::{
     BaudRate, BootCtl, BootCtlConfig, BootMetaStore, Duplex, Storage, TxEnConfig, Usart,
     UsartConfig,
 };
 
-// Re-exports so boot examples only need this one crate.
+// Re-exports so boot examples only need this one module.
+pub use crate::hal::gpio::Pull;
+pub use crate::hal::{Pin, UsartMapping};
 pub use tinyboot::traits::boot::Platform;
 pub use tinyboot::{boot_version, pkg_version};
-pub use tinyboot_ch32_hal::gpio::Pull;
-pub use tinyboot_ch32_hal::{Pin, UsartMapping};
 
 /// Common imports for bootloader binaries.
 pub mod prelude {
-    pub use crate::{
+    pub use super::{
         BaudRate, BootCtlConfig, Duplex, Pin, Pull, TxEnConfig, Usart, UsartConfig, UsartMapping,
     };
 }
 
 /// Protocol write buffer size (2 × page size).
-pub const PAGE_SIZE: usize = tinyboot_ch32_hal::flash::PAGE_SIZE;
+pub const PAGE_SIZE: usize = crate::hal::flash::PAGE_SIZE;
 
 /// Run the bootloader with the given transport and boot control config.
 ///

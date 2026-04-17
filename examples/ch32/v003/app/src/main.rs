@@ -23,7 +23,7 @@ use critical_section::Mutex;
 
 use defmt_rtt as _;
 
-tinyboot_ch32_app::app_version!();
+tinyboot_ch32::app::app_version!();
 
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
@@ -64,7 +64,7 @@ fn main() -> ! {
     let mut tx = transport::Tx(tx);
 
     // Tinyboot app client
-    let mut app = tinyboot_ch32_app::new_app(tinyboot_ch32_app::BootCtlConfig);
+    let mut app = tinyboot_ch32::app::new_app(tinyboot_ch32::app::BootCtlConfig);
     app.confirm();
 
     defmt::info!("Boot confirmed, app ready.");
