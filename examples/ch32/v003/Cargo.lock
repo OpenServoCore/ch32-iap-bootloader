@@ -66,7 +66,7 @@ version = "0.1.0"
 source = "git+https://github.com/ch32-rs/ch32-hal#2ed4f3cab40f42b81d7355f1632ae4cb9ad4d5f1"
 dependencies = [
  "bitmaps",
- "ch32-metapac 0.1.0",
+ "ch32-metapac 0.1.0 (git+https://github.com/ch32-rs/ch32-metapac?rev=7cd6fb70d07de3a987c63d0d8f5547bb8261e403)",
  "critical-section",
  "embassy-futures",
  "embassy-hal-internal",
@@ -90,18 +90,17 @@ dependencies = [
 
 [[package]]
 name = "ch32-metapac"
-version = "0.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edc8e84ea6d10960c6018df65845a5dfa87dfefbc3bb9f058b6ed2a24fec1db6"
+version = "0.1.0"
+source = "git+https://github.com/ch32-rs/ch32-metapac?rev=7cd6fb70d07de3a987c63d0d8f5547bb8261e403#7cd6fb70d07de3a987c63d0d8f5547bb8261e403"
 dependencies = [
- "riscv 0.11.1",
+ "riscv 0.12.1",
  "vcell",
 ]
 
 [[package]]
 name = "ch32-metapac"
 version = "0.1.0"
-source = "git+https://github.com/ch32-rs/ch32-metapac?rev=7cd6fb70d07de3a987c63d0d8f5547bb8261e403#7cd6fb70d07de3a987c63d0d8f5547bb8261e403"
+source = "git+https://github.com/ch32-rs/ch32-metapac#f8011f710e5c5fcac84ec693f21543d00513a9ca"
 dependencies = [
  "riscv 0.12.1",
  "vcell",
@@ -509,16 +508,6 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
 name = "riscv"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f5c1b8bf41ea746266cdee443d1d1e9125c86ce1447e1a2615abd34330d33a9"
-dependencies = [
- "critical-section",
- "embedded-hal 1.0.0",
-]
-
-[[package]]
-name = "riscv"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5ea8ff73d3720bdd0a97925f0bf79ad2744b6da8ff36be3840c48ac81191d7a7"
@@ -629,7 +618,7 @@ dependencies = [
 name = "tinyboot-ch32"
 version = "0.3.0"
 dependencies = [
- "ch32-metapac 0.0.6",
+ "ch32-metapac 0.1.0 (git+https://github.com/ch32-rs/ch32-metapac)",
  "critical-section",
  "embedded-hal 1.0.0",
  "embedded-io 0.7.1",
