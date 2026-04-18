@@ -11,7 +11,7 @@
  */
 MEMORY
 {
-    RAM  : ORIGIN = 0x20000000, LENGTH = 20K
+    RAM  : ORIGIN = 0x20000000, LENGTH = 20K - 4   /* __tb_run_mode */
 
     /* Execution mirror of BOOT */
     CODE : ORIGIN = 0x00000000, LENGTH = 2048

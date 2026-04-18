@@ -1,8 +1,8 @@
-//! Run-mode persisted in a RAM magic word at `__tb_run_mode`.
+//! Run-mode persisted in a RAM magic word at the end of RAM (`__tb_run_mode`).
 
 use tinyboot_core::traits::RunMode;
 
-const MAGIC: u32 = 0xB007_CAFE;
+const MAGIC: u32 = 0xB007_C0DE;
 
 unsafe extern "C" {
     static mut __tb_run_mode: u32;

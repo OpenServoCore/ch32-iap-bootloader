@@ -10,7 +10,7 @@
  */
 MEMORY
 {
-    RAM  : ORIGIN = 0x20000000, LENGTH = 2K
+    RAM  : ORIGIN = 0x20000000, LENGTH = 2K - 4   /* __tb_run_mode */
 
     /* Execution mirror of APP */
     CODE : ORIGIN = 0x00000000 + 2K, LENGTH = 14K - 64
