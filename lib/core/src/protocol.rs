@@ -190,6 +190,7 @@ impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl, const BUF: usiz
                     if !self.buf.is_empty() {
                         self.write_buf(next, self.buf.len());
                     }
+                    self.buf.reset();
                     self.next_addr = None;
                 }
             }
