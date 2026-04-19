@@ -197,6 +197,8 @@ impl<'a, T: Transport, S: Storage, B: BootMetaStore, C: BootCtl, const BUF: usiz
 
         self.frame
             .send(&mut self.platform.transport)
-            .map_err(|_| ReadError)
+            .map_err(|_| ReadError)?;
+
+        embedded_io::Write::flush(&mut self.platform.transport).map_err(|_| ReadError)
     }
 }
