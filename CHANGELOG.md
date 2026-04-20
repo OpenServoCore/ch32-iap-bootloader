@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-19
+
 ### Added
 
 - **CH32V00x support** — full bootloader and app support for CH32V002/V004/V005/V006/V007 (system flash at `0x1FFF0000`, 3KB + 256B).

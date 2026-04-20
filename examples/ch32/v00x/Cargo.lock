@@ -622,7 +622,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-ch32"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "ch32-metapac 0.1.0 (git+https://github.com/ch32-rs/ch32-metapac)",
  "critical-section",
@@ -634,11 +634,11 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-ch32-rt"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "tinyboot-core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "critical-section",
  "embedded-io 0.7.1",
@@ -649,7 +649,7 @@ dependencies = [
 
 [[package]]
 name = "tinyboot-protocol"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "bitflags 2.11.1",
  "embedded-io 0.7.1",
