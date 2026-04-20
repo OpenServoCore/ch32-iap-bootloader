@@ -9,6 +9,9 @@ A Rust bootloader for resource-constrained microcontrollers. Fits in the CH32V00
 
 ![tinyboot demo](docs/demo.gif)
 
+> [!NOTE]
+> **A note on AI assistance.** Parts of this project — code, tests, and the handbook — were written with AI assistance. We disclose that upfront so you can factor it into your evaluation. Humans still own the architecture, code quality, and correctness calls: every change is reviewed by a person, validated on real hardware where it touches flash / peripherals / boot, and has to keep fitting in the system-flash size budget. AI helps with throughput, not judgment. Full policy in the [contributing guide](https://openservocore.github.io/tinyboot/contributing.html#ai-assistance).
+
 ## Supported chips
 
 | Family       | Status       |
