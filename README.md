@@ -18,30 +18,30 @@ tinyboot currently supports **UART / RS-485** transport. The table below tracks 
 
 ✅ Verified | ❓ Untested (same die, likely works — volunteer needed) | 📋 Planned
 
-| Chip         | Feature Flag   | System Flash              | Status | Blocker                                |
-| ------------ | -------------- | ------------------------- | ------ | -------------------------------------- |
-| CH32V003F4P6 | `ch32v003f4p6` | `0x1FFFF000` (1920B)      | ✅     | --                                     |
-| CH32V003A4M6 | `ch32v003a4m6` | `0x1FFFF000` (1920B)      | ❓     | --                                     |
-| CH32V003F4U6 | `ch32v003f4u6` | `0x1FFFF000` (1920B)      | ❓     | --                                     |
-| CH32V003J4M6 | `ch32v003j4m6` | `0x1FFFF000` (1920B)      | ❓     | --                                     |
-| CH32V103C6T6 | `ch32v103c6t6` | `0x1FFFF000` (2048B)      | ❓     | --                                     |
-| CH32V103C8T6 | `ch32v103c8t6` | `0x1FFFF000` (2048B)      | ✅     | --                                     |
-| CH32V103C8U6 | `ch32v103c8u6` | `0x1FFFF000` (2048B)      | ❓     | --                                     |
-| CH32V103R8T6 | `ch32v103r8t6` | `0x1FFFF000` (2048B)      | ❓     | --                                     |
-| CH32V002X4X6 | `ch32v002x4x6` | `0x1FFF0000` (3KB + 256B) | 📋     | `flash_v00x` HAL ([#29][ch32-data-29]) |
-| CH32V004X6X1 | `ch32v004x6x1` | `0x1FFF0000` (3KB + 256B) | 📋     | `flash_v00x` HAL ([#29][ch32-data-29]) |
-| CH32V005X6X6 | `ch32v005x6x6` | `0x1FFF0000` (3KB + 256B) | 📋     | `flash_v00x` HAL ([#29][ch32-data-29]) |
-| CH32V006X8X6 | `ch32v006x8x6` | `0x1FFF0000` (3KB + 256B) | 📋     | `flash_v00x` HAL ([#29][ch32-data-29]) |
-| CH32V007X8X6 | `ch32v007x8x6` | `0x1FFF0000` (3KB + 256B) | 📋     | `flash_v00x` HAL ([#29][ch32-data-29]) |
-| CH32X033F8P6 | `ch32x033f8p6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
-| CH32X034F8P6 | `ch32x034f8p6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
-| CH32X034F8U6 | `ch32x034f8u6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
-| CH32X035C8T6 | `ch32x035c8t6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
-| CH32X035F7P6 | `ch32x035f7p6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
-| CH32X035F8U6 | `ch32x035f8u6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
-| CH32X035G8R6 | `ch32x035g8r6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
-| CH32X035G8U6 | `ch32x035g8u6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
-| CH32X035R8T6 | `ch32x035r8t6` | `0x1FFF0000` (3KB + 256B) | 📋     | --                                     |
+| Chip         | Feature Flag   | System Flash              | Status |
+| ------------ | -------------- | ------------------------- | ------ |
+| CH32V003F4P6 | `ch32v003f4p6` | `0x1FFFF000` (1920B)      | ✅     |
+| CH32V003A4M6 | `ch32v003a4m6` | `0x1FFFF000` (1920B)      | ❓     |
+| CH32V003F4U6 | `ch32v003f4u6` | `0x1FFFF000` (1920B)      | ❓     |
+| CH32V003J4M6 | `ch32v003j4m6` | `0x1FFFF000` (1920B)      | ❓     |
+| CH32V103C6T6 | `ch32v103c6t6` | `0x1FFFF000` (2048B)      | ❓     |
+| CH32V103C8T6 | `ch32v103c8t6` | `0x1FFFF000` (2048B)      | ✅     |
+| CH32V103C8U6 | `ch32v103c8u6` | `0x1FFFF000` (2048B)      | ❓     |
+| CH32V103R8T6 | `ch32v103r8t6` | `0x1FFFF000` (2048B)      | ❓     |
+| CH32V002X4X6 | `ch32v002x4x6` | `0x1FFF0000` (3KB + 256B) | ❓     |
+| CH32V004X6X1 | `ch32v004x6x1` | `0x1FFF0000` (3KB + 256B) | ❓     |
+| CH32V005X6X6 | `ch32v005x6x6` | `0x1FFF0000` (3KB + 256B) | ❓     |
+| CH32V006X8X6 | `ch32v006x8x6` | `0x1FFF0000` (3KB + 256B) | ✅     |
+| CH32V007X8X6 | `ch32v007x8x6` | `0x1FFF0000` (3KB + 256B) | ❓     |
+| CH32X033F8P6 | `ch32x033f8p6` | `0x1FFF0000` (3KB + 256B) | 📋     |
+| CH32X034F8P6 | `ch32x034f8p6` | `0x1FFF0000` (3KB + 256B) | 📋     |
+| CH32X034F8U6 | `ch32x034f8u6` | `0x1FFF0000` (3KB + 256B) | 📋     |
+| CH32X035C8T6 | `ch32x035c8t6` | `0x1FFF0000` (3KB + 256B) | 📋     |
+| CH32X035F7P6 | `ch32x035f7p6` | `0x1FFF0000` (3KB + 256B) | 📋     |
+| CH32X035F8U6 | `ch32x035f8u6` | `0x1FFF0000` (3KB + 256B) | 📋     |
+| CH32X035G8R6 | `ch32x035g8r6` | `0x1FFF0000` (3KB + 256B) | 📋     |
+| CH32X035G8U6 | `ch32x035g8u6` | `0x1FFF0000` (3KB + 256B) | 📋     |
+| CH32X035R8T6 | `ch32x035r8t6` | `0x1FFF0000` (3KB + 256B) | 📋     |
 
 ## Features
 
@@ -86,16 +86,17 @@ ch32/                       CH32 implementation
 cli/                        tinyboot — host CLI flasher
 
 examples/ch32/v003/         CH32V003 boot + app examples
+examples/ch32/v00x/         CH32V00x (V002/V004/V005/V006/V007) boot + app examples
 examples/ch32/v103/         CH32V103 boot + app examples
 ```
 
-| Crate                                    | Description                                                                                         |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [`tinyboot-core`](lib/core/)             | Platform-agnostic bootloader core (protocol dispatcher, boot state machine, app validation)         |
-| [`tinyboot-protocol`](lib/protocol/)     | Wire protocol (frame format, CRC16, commands)                                                       |
-| [`tinyboot-ch32`](ch32/)                 | CH32 HAL and tinyboot platform — use `boot` for bootloader binaries, `app` for application binaries |
-| [`tinyboot-ch32-rt`](ch32/rt/)           | Minimal CH32 runtime for bootloader binaries that can't afford full `qingke-rt`                     |
-| [`tinyboot`](cli/)                       | CLI firmware flasher over UART                                                                      |
+| Crate                                | Description                                                                                         |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| [`tinyboot-core`](lib/core/)         | Platform-agnostic bootloader core (protocol dispatcher, boot state machine, app validation)         |
+| [`tinyboot-protocol`](lib/protocol/) | Wire protocol (frame format, CRC16, commands)                                                       |
+| [`tinyboot-ch32`](ch32/)             | CH32 HAL and tinyboot platform — use `boot` for bootloader binaries, `app` for application binaries |
+| [`tinyboot-ch32-rt`](ch32/rt/)       | Minimal CH32 runtime for bootloader binaries that can't afford full `qingke-rt`                     |
+| [`tinyboot`](cli/)                   | CLI firmware flasher over UART                                                                      |
 
 ## Rust Version
 
@@ -204,5 +205,3 @@ Please [open an issue](https://github.com/OpenServoCore/tinyboot/issues) before 
 ## License
 
 Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or [MIT License](LICENSE-MIT) at your option.
-
-[ch32-data-29]: https://github.com/ch32-rs/ch32-data/pull/29
