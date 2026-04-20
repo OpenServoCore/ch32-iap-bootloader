@@ -41,7 +41,7 @@ impl TxEn<'_> {
 }
 
 #[inline(always)]
-fn invert(level: Level) -> Level {
+pub fn invert(level: Level) -> Level {
     match level {
         Level::High => Level::Low,
         Level::Low => Level::High,

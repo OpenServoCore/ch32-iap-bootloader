@@ -66,6 +66,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    // split_sysflash: system flash is split into two regions by option bytes.
+    // Flash HAL functions are placed in the second region (.text2).
+    println!("cargo::rustc-check-cfg=cfg(split_sysflash)");
+    if system_flash && boot_pin {
+        println!("cargo:rustc-cfg=split_sysflash");
+        cfgs.push("split_sysflash".to_string());
+    }
+
     println!("cargo:cfgs={}", cfgs.join(","));
 
     generate_pin_and_usart_mapping(out)?;
@@ -74,6 +82,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // keeps downstream build scripts free of conditional logic.
     fs::copy("tb-run-mode.x", out.join("tb-run-mode.x"))?;
     println!("cargo:rerun-if-changed=tb-run-mode.x");
+
+    if system_flash && boot_pin {
+        fs::copy("split-sysflash.x", out.join("split-sysflash.x"))?;
+        println!("cargo:rerun-if-changed=split-sysflash.x");
+    }
 
     println!("cargo:rustc-link-search={}", out.display());
     println!("cargo:rerun-if-changed=build.rs");

@@ -32,13 +32,6 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 type Shared<T> = Mutex<RefCell<Option<T>>>;
 static LED: Shared<Output<'static>> = Mutex::new(RefCell::new(None));
 
-fn invert_level(level: Level) -> Level {
-    match level {
-        Level::High => Level::Low,
-        Level::Low => Level::High,
-    }
-}
-
 #[qingke_rt::entry]
 fn main() -> ! {
     let p = ch32_hal::init(Default::default());
@@ -70,7 +63,7 @@ fn main() -> ! {
     // drives the pin High (inverse), which tri-states U4A on the V006 dev board
     // so LinkE UART TX can reach MCU_RX without contention.
     let tx_level = Level::Low;
-    let tx_en_pin = Output::new(p.PC2, invert_level(tx_level), Default::default());
+    let tx_en_pin = Output::new(p.PC2, transport::invert(tx_level), Default::default());
     let mut tx = transport::Tx {
         uart: tx,
         tx_en: Some(transport::TxEn {

@@ -55,7 +55,9 @@ pub struct Usart {
 impl tinyboot_core::traits::Transport for Usart {}
 
 impl Usart {
-    #[inline(always)]
+    #[cfg_attr(split_sysflash, inline(never))]
+    #[cfg_attr(not(split_sysflash), inline(always))]
+    #[cfg_attr(split_sysflash, unsafe(link_section = ".text2"))]
     pub fn new(config: &UsartConfig) -> Self {
         let tx_pin = config.mapping.tx_pin();
         let rx_pin = config.mapping.rx_pin();
@@ -126,6 +128,8 @@ impl ErrorType for Usart {
 }
 
 impl embedded_io::Read for Usart {
+    #[cfg_attr(split_sysflash, inline(never))]
+    #[cfg_attr(split_sysflash, unsafe(link_section = ".text2"))]
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
         if buf.is_empty() {
             return Ok(0);
@@ -134,6 +138,8 @@ impl embedded_io::Read for Usart {
         Ok(1)
     }
 
+    #[cfg_attr(split_sysflash, inline(never))]
+    #[cfg_attr(split_sysflash, unsafe(link_section = ".text2"))]
     fn read_exact(
         &mut self,
         buf: &mut [u8],
@@ -147,11 +153,15 @@ impl embedded_io::Read for Usart {
 }
 
 impl embedded_io::Write for Usart {
+    #[cfg_attr(split_sysflash, inline(never))]
+    #[cfg_attr(split_sysflash, unsafe(link_section = ".text2"))]
     fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
         self.write_all(buf)?;
         Ok(buf.len())
     }
 
+    #[cfg_attr(split_sysflash, inline(never))]
+    #[cfg_attr(split_sysflash, unsafe(link_section = ".text2"))]
     fn write_all(&mut self, buf: &[u8]) -> Result<(), Self::Error> {
         self.set_tx_mode();
         let regs = self.regs;
@@ -161,6 +171,8 @@ impl embedded_io::Write for Usart {
         Ok(())
     }
 
+    #[cfg_attr(split_sysflash, inline(never))]
+    #[cfg_attr(split_sysflash, unsafe(link_section = ".text2"))]
     fn flush(&mut self) -> Result<(), Self::Error> {
         usart::flush(self.regs);
         self.set_rx_mode();
