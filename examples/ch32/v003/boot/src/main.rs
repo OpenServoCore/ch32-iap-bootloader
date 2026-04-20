@@ -33,7 +33,10 @@ fn main() -> ! {
         pclk: 8_000_000,
         mapping: UsartMapping::Usart1Remap0,
         rx_pull: Pull::None,
-        tx_en: None,
+        tx_en: Some(TxEnConfig {
+            pin: Pin::PC2,
+            tx_level: Level::Low,
+        }),
     });
     tinyboot_ch32::boot::run(transport, BootCtl::new());
 }

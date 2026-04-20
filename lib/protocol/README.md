@@ -11,23 +11,24 @@ A single `Frame` struct is used for both requests (host to device) and responses
 ```
  0       1       2       3       4       5       6       7       8       9       10      10+len  10+len+2
  +-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+- - - -+-------+-------+
- | SYNC0 | SYNC1 |  CMD  |STATUS |          ADDR (u32 LE)        | LEN_LO  LEN_HI | DATA... | CRC_LO  CRC_HI |
- | 0xAA  | 0x55  |       |       |                               |                 |         |                 |
+ | SYNC0 | SYNC1 |  CMD  |STATUS |     ADDR (u24 LE)     | FLAGS | LEN_LO  LEN_HI | DATA... | CRC_LO  CRC_HI |
+ | 0xAA  | 0x55  |       |       |                       |       |                 |         |                 |
  +-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+- - - -+-------+-------+
  |<--------------------- header (10 bytes) --------------------->|<- payload ->|<--- CRC --->|
 ```
 
 Total frame size = 12 bytes overhead + payload. Maximum payload is 64 bytes (`MAX_PAYLOAD`).
 
-| Field  | Size    | Description                                                   |
-| ------ | ------- | ------------------------------------------------------------- |
-| SYNC   | 2 bytes | Preamble `0xAA 0x55` for frame synchronization                |
-| CMD    | 1 byte  | Command code                                                  |
-| STATUS | 1 byte  | `Request (0x00)` for requests, result status for responses    |
-| ADDR   | 4 bytes | Flash address (u32 LE). Echoed in responses                   |
-| LEN    | 2 bytes | Data payload length (u16 LE, 0..64)                           |
-| DATA   | 0..64   | Payload bytes                                                 |
-| CRC    | 2 bytes | CRC16-CCITT (LE) over SYNC + CMD + STATUS + ADDR + LEN + DATA |
+| Field  | Size    | Description                                                           |
+| ------ | ------- | --------------------------------------------------------------------- |
+| SYNC   | 2 bytes | Preamble `0xAA 0x55` for frame synchronization                        |
+| CMD    | 1 byte  | Command code                                                          |
+| STATUS | 1 byte  | `Request (0x00)` for requests, result status for responses            |
+| ADDR   | 3 bytes | Flash address (u24 LE). Echoed in responses                           |
+| FLAGS  | 1 byte  | Per-command flags (see below). Occupies addr byte 3                   |
+| LEN    | 2 bytes | Data payload length (u16 LE, 0..64)                                   |
+| DATA   | 0..64   | Payload bytes                                                         |
+| CRC    | 2 bytes | CRC16-CCITT (LE) over SYNC + CMD + STATUS + ADDR + FLAGS + LEN + DATA |
 
 ## Commands
 
@@ -35,10 +36,27 @@ Total frame size = 12 bytes overhead + payload. Maximum payload is 64 bytes (`MA
 | ---- | ------ | -------------- | -------------------------------------------------------------------------- |
 | 0x00 | Info   | Host to Device | Query device info (capacity, erase size, versions, mode)                   |
 | 0x01 | Erase  | Host to Device | Erase `byte_count` bytes at addr (first erase transitions Idle → Updating) |
-| 0x02 | Write  | Host to Device | Write data at address                                                      |
+| 0x02 | Write  | Host to Device | Write data at address. `WriteFlags::FLUSH` commits trailing partial page   |
 | 0x03 | Verify | Host to Device | Compute CRC16 over `addr` bytes of app, store checksum + state in metadata |
-| 0x04 | Reset  | Host to Device | Reset the device                                                           |
-| 0x05 | Flush  | Host to Device | Flush buffered writes to storage                                           |
+| 0x04 | Reset  | Host to Device | Reset the device. `ResetFlags::BOOTLOADER` enters bootloader (service)     |
+
+## Per-command flags
+
+Byte 3 of the address field carries per-command flags. Each command defines its own bitflags type; unused bits are reserved and must be zero.
+
+### `WriteFlags` (Cmd::Write)
+
+| Bit | Flag    | Description                                                                                                                                                           |
+| --- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 7   | `FLUSH` | Commit the buffered page after this write and reset write state. Required on the last write of each contiguous region (before an address jump or at end of transfer). |
+
+### `ResetFlags` (Cmd::Reset)
+
+| Bit | Flag         | Description                                     |
+| --- | ------------ | ----------------------------------------------- |
+| 0   | `BOOTLOADER` | Enter the bootloader (service mode) after reset |
+
+With no flag set, `Cmd::Reset` boots the app (hand-off mode).
 
 ### Info response
 
@@ -64,12 +82,12 @@ Request payload (2 bytes via `EraseData`):
 | ------ | ------- | ---------- | --------------------------------- |
 | 0      | 2 bytes | byte_count | Number of bytes to erase (u16 LE) |
 
-### Flush
+### Flushing buffered writes
 
-The host must send a Flush command to commit any partial page still buffered on the device. Flush is required:
+Writes are accumulated in a ring buffer on the device and flushed a page at a time. The host sets `WriteFlags::FLUSH` on the Write that ends a contiguous region to commit the trailing partial page. Flush is required:
 
-- **After the final Write** — otherwise the last partial page may not be written to flash, causing Verify to fail.
-- **Before skipping an address range** — if the host advances the write address (e.g. skipping a gap between segments), it must Flush first to commit the buffered data at the previous address.
+- **On the final Write** — otherwise the last partial page may not be written to flash, causing Verify to fail.
+- **Before skipping an address range** — if the host advances the write address (e.g. skipping a gap between segments), it must flush the previous region first.
 
 ### Write alignment
 
@@ -79,7 +97,7 @@ Write payloads must be padded to a 4-byte boundary. The device writes to flash 4
 
 The `addr` field carries the application size in bytes. The device computes CRC16 over the first `addr` bytes of flash (the actual firmware, not the full region), stores the checksum and app size in boot metadata, and transitions to Validating state.
 
-If Verify returns `CrcMismatch`, check that all Write payloads were padded to 4 bytes and that Flush was sent after the last Write (and before any address skips).
+If Verify returns `CrcMismatch`, check that all Write payloads were padded to 4 bytes and that `WriteFlags::FLUSH` was set on the last Write (and on the last Write of each contiguous region before any address skip).
 
 Response returns 2 bytes via the `VerifyData` struct:
 
@@ -141,8 +159,7 @@ Device -> Ok
 Host  -> Write addr=0x0040 data=[64 bytes]
 Device -> Ok
 ...
-
-Host  -> Flush
+Host  -> Write addr=0x13C0 data=[54 bytes] flags=WriteFlags::FLUSH
 Device -> Ok
 
 Host  -> Verify addr=5110 (app_size)

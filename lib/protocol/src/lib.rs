@@ -12,7 +12,29 @@ pub mod crc;
 pub mod frame;
 pub(crate) mod sync;
 
-pub use frame::{Data, EraseData, InfoData, MAX_PAYLOAD, VerifyData};
+pub use frame::{Data, EraseData, Flags, InfoData, MAX_PAYLOAD, VerifyData};
+
+use bitflags::bitflags;
+
+bitflags! {
+    /// Flags for [`Cmd::Write`] (addr byte 3).
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub struct WriteFlags: u8 {
+        /// Commit the page after this write and reset write state.
+        /// Set on the last write of each contiguous region (address jump
+        /// or end of transfer).
+        const FLUSH = 1 << 7;
+    }
+}
+
+bitflags! {
+    /// Flags for [`Cmd::Reset`] (addr byte 3).
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub struct ResetFlags: u8 {
+        /// Enter bootloader (service mode) instead of booting the app.
+        const BOOTLOADER = 1 << 0;
+    }
+}
 
 /// Pack a semantic version into a `u16` using 5.5.6 encoding.
 ///
@@ -74,16 +96,14 @@ pub enum Cmd {
     Write = 0x02,
     /// Compute CRC16 over app region and transition to Validating.
     Verify = 0x03,
-    /// Reset the device. `addr=0`: boot app, `addr=1`: enter bootloader.
+    /// Reset the device. See [`ResetFlags`].
     Reset = 0x04,
-    /// Flush buffered writes to storage.
-    Flush = 0x05,
 }
 
 impl Cmd {
     /// Returns true if `b` is a valid command code.
     pub fn is_valid(b: u8) -> bool {
-        b <= 0x05
+        b <= 0x04
     }
 }
 
@@ -130,8 +150,7 @@ mod tests {
     fn cmd_is_valid() {
         assert!(Cmd::is_valid(Cmd::Info as u8));
         assert!(Cmd::is_valid(Cmd::Reset as u8));
-        assert!(Cmd::is_valid(Cmd::Flush as u8));
-        assert!(!Cmd::is_valid(0x06));
+        assert!(!Cmd::is_valid(0x05));
         assert!(!Cmd::is_valid(0xFF));
     }
 

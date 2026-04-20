@@ -1,5 +1,6 @@
-//! embedded_io adapters for ch32-hal blocking UART.
+//! embedded_io adapters for ch32-hal blocking UART with optional RS-485 DE/RE.
 
+use ch32_hal::gpio::{Level, Output};
 use ch32_hal::mode::Blocking;
 use ch32_hal::usart::{Instance, UartRx, UartTx};
 use core::convert::Infallible;
@@ -21,7 +22,36 @@ impl<T: Instance> Read for Rx<'_, T> {
     }
 }
 
-pub struct Tx<'d, T: Instance>(pub UartTx<'d, T, Blocking>);
+pub struct TxEn<'d> {
+    pub pin: Output<'d>,
+    /// Level driven to enable TX; the inverse enables RX.
+    pub tx_level: Level,
+}
+
+impl TxEn<'_> {
+    #[inline(always)]
+    fn set_tx(&mut self) {
+        self.pin.set_level(self.tx_level);
+    }
+
+    #[inline(always)]
+    fn set_rx(&mut self) {
+        self.pin.set_level(invert(self.tx_level));
+    }
+}
+
+#[inline(always)]
+pub fn invert(level: Level) -> Level {
+    match level {
+        Level::High => Level::Low,
+        Level::Low => Level::High,
+    }
+}
+
+pub struct Tx<'d, T: Instance> {
+    pub uart: UartTx<'d, T, Blocking>,
+    pub tx_en: Option<TxEn<'d>>,
+}
 
 impl<T: Instance> ErrorType for Tx<'_, T> {
     type Error = Infallible;
@@ -29,12 +59,18 @@ impl<T: Instance> ErrorType for Tx<'_, T> {
 
 impl<T: Instance> Write for Tx<'_, T> {
     fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
-        let _ = self.0.blocking_write(buf);
+        if let Some(tx_en) = self.tx_en.as_mut() {
+            tx_en.set_tx();
+        }
+        let _ = self.uart.blocking_write(buf);
         Ok(buf.len())
     }
 
     fn flush(&mut self) -> Result<(), Self::Error> {
-        let _ = self.0.blocking_flush();
+        let _ = self.uart.blocking_flush();
+        if let Some(tx_en) = self.tx_en.as_mut() {
+            tx_en.set_rx();
+        }
         Ok(())
     }
 }

@@ -13,11 +13,13 @@ MEMORY
 {
     RAM  : ORIGIN = 0x20000000, LENGTH = 20K - 4   /* __tb_run_mode */
 
-    /* Execution mirror of BOOT */
-    CODE : ORIGIN = 0x00000000, LENGTH = 2048
+    /* Execution mirror of BOOT / BOOT2 */
+    CODE  : ORIGIN = 0x00000000, LENGTH = 2048
+    CODE2 : ORIGIN = 0x00000900, LENGTH = 1792
 
     /* Physical flash addresses */
-    BOOT : ORIGIN = 0x1FFFF000, LENGTH = 2048
-    APP  : ORIGIN = 0x08000000, LENGTH = 64K - 128
-    META : ORIGIN = 0x08000000 + 64K - 128, LENGTH = 128
+    BOOT  : ORIGIN = 0x1FFFF000, LENGTH = 2048
+    BOOT2 : ORIGIN = 0x1FFFF900, LENGTH = 1792
+    APP   : ORIGIN = 0x08000000, LENGTH = 64K - 128
+    META  : ORIGIN = 0x08000000 + 64K - 128, LENGTH = 128
 }

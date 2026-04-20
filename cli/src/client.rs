@@ -1,7 +1,7 @@
 use log::debug;
 use tinyboot_protocol::crc::{CRC_INIT, crc16};
-use tinyboot_protocol::frame::{EraseData, Frame, MAX_PAYLOAD};
-use tinyboot_protocol::{Cmd, Status};
+use tinyboot_protocol::frame::{EraseData, Flags, Frame, MAX_PAYLOAD};
+use tinyboot_protocol::{Cmd, ResetFlags, Status, WriteFlags};
 
 #[derive(Debug, thiserror::Error)]
 pub enum FlashError {
@@ -45,7 +45,9 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
         self.frame.status = Status::Request;
         debug!(
             ">> {:?} addr={:#X} len={}",
-            self.frame.cmd, self.frame.addr, self.frame.len
+            self.frame.cmd,
+            self.frame.addr(),
+            self.frame.len
         );
         self.frame
             .send(&mut self.transport)
@@ -71,7 +73,8 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
     /// Query device geometry.
     pub fn info(&mut self) -> Result<DeviceInfo, FlashError> {
         self.frame.cmd = Cmd::Info;
-        self.frame.addr = 0;
+        self.frame.set_addr(0);
+        self.frame.flags = Flags { raw: 0 };
         self.frame.len = 0;
         self.transact()?;
 
@@ -110,7 +113,8 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
         let mut addr = 0u32;
         while addr < capacity {
             self.frame.cmd = Cmd::Erase;
-            self.frame.addr = addr;
+            self.frame.set_addr(addr);
+            self.frame.flags = Flags { raw: 0 };
             self.frame.len = 2;
             self.frame.data.erase = EraseData {
                 byte_count: erase_size as u16,
@@ -147,7 +151,8 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
         let mut erase_addr = 0u32;
         while erase_addr < info.capacity {
             self.frame.cmd = Cmd::Erase;
-            self.frame.addr = erase_addr;
+            self.frame.set_addr(erase_addr);
+            self.frame.flags = Flags { raw: 0 };
             self.frame.len = 2;
             self.frame.data.erase = EraseData {
                 byte_count: erase_size as u16,
@@ -157,8 +162,8 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
             on_progress("Erasing", erase_addr, info.capacity);
         }
 
-        // 3. Write — chunk by MAX_PAYLOAD, pad to 4-byte alignment with 0xFF
-        let page_size = erase_size as usize;
+        // 3. Write — chunk by MAX_PAYLOAD, pad to 4-byte alignment with 0xFF.
+        //    Set FLUSH flag on the last chunk.
         let padded_len = firmware.len().next_multiple_of(4);
         let total_chunks = padded_len.div_ceil(MAX_PAYLOAD) as u32;
         let mut offset = 0usize;
@@ -166,6 +171,7 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
         while offset < padded_len {
             let end = (offset + MAX_PAYLOAD).min(padded_len);
             let len = end - offset;
+            let is_last = end >= padded_len;
             // Copy firmware bytes, pad remainder with 0xFF
             let fw_end = end.min(firmware.len());
             let fw_bytes = fw_end.saturating_sub(offset);
@@ -175,17 +181,20 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
                 self.frame.data.raw[fw_bytes..len].fill(0xFF);
             }
             self.frame.cmd = Cmd::Write;
-            self.frame.addr = offset as u32;
+            self.frame.set_addr(offset as u32);
+            self.frame.flags = Flags {
+                write: if is_last {
+                    WriteFlags::FLUSH
+                } else {
+                    WriteFlags::empty()
+                },
+            };
             self.frame.len = len as u16;
             match self.transact() {
                 Ok(()) => {}
                 Err(FlashError::Device(Status::CrcMismatch)) => {
-                    // Response frame corrupted — flush device write buffer
-                    // and restart from the nearest page-aligned offset.
-                    debug!("CRC mismatch at {offset:#X}, retrying from page boundary");
-                    let _ = self.flush();
-                    offset &= !(page_size - 1);
-                    chunk_idx = (offset / MAX_PAYLOAD) as u32;
+                    // Response frame corrupted — retry from current offset.
+                    debug!("CRC mismatch at {offset:#X}, retrying");
                     continue;
                 }
                 Err(e) => return Err(e),
@@ -195,14 +204,12 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
             on_progress("Writing", chunk_idx, total_chunks);
         }
 
-        // 4. Flush buffered writes
-        self.flush()?;
-
-        // 5. Verify — CRC covers original firmware bytes only (not padding)
+        // 4. Verify — CRC covers original firmware bytes only (not padding)
         let expected_crc = crc16(CRC_INIT, firmware);
 
         self.frame.cmd = Cmd::Verify;
-        self.frame.addr = fw_size;
+        self.frame.set_addr(fw_size);
+        self.frame.flags = Flags { raw: 0 };
         self.frame.len = 0;
         self.transact()?;
 
@@ -217,19 +224,18 @@ impl<T: embedded_io::Read + embedded_io::Write> Client<T> {
         Ok(info)
     }
 
-    /// Flush buffered writes on the device.
-    pub fn flush(&mut self) -> Result<(), FlashError> {
-        self.frame.cmd = Cmd::Flush;
-        self.frame.addr = 0;
-        self.frame.len = 0;
-        self.transact()
-    }
-
     /// Reset the device. Does not wait for a response since the device resets immediately.
-    /// `bootloader=true` (addr=1): enter bootloader. `bootloader=false` (addr=0): boot app.
+    /// `bootloader=true`: enter bootloader. `bootloader=false`: boot app.
     pub fn reset(&mut self, bootloader: bool) {
         self.frame.cmd = Cmd::Reset;
-        self.frame.addr = u32::from(bootloader);
+        self.frame.set_addr(0);
+        self.frame.flags = Flags {
+            reset: if bootloader {
+                ResetFlags::BOOTLOADER
+            } else {
+                ResetFlags::empty()
+            },
+        };
         self.frame.len = 0;
         self.frame.status = Status::Request;
         let _ = self.frame.send(&mut self.transport);

@@ -70,6 +70,14 @@ impl<const N: usize> RingBuf<N> {
     pub fn consume(&mut self, n: usize) {
         self.tail = (self.tail + n) % N;
     }
+
+    /// Reset head/tail to 0. Caller must ensure the buffer is empty.
+    #[inline(always)]
+    pub fn reset(&mut self) {
+        debug_assert!(self.is_empty(), "reset of non-empty ring buffer");
+        self.head = 0;
+        self.tail = 0;
+    }
 }
 
 #[cfg(test)]

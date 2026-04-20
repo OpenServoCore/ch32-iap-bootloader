@@ -56,7 +56,19 @@ fn main() -> ! {
     let uart = Uart::new_blocking::<0>(p.USART1, p.PA10, p.PA9, uart_config).unwrap();
     let (tx, rx) = uart.split();
     let mut rx = transport::Rx(rx);
-    let mut tx = transport::Tx(tx);
+
+    // RS-485 DE/RE on PC2, matching the bootloader. tx_level=Low means idle-RX
+    // drives the pin High (inverse), which tri-states the transceiver so the
+    // programmer UART TX can reach MCU_RX without contention.
+    let tx_level = Level::Low;
+    let tx_en_pin = Output::new(p.PC2, transport::invert(tx_level), Default::default());
+    let mut tx = transport::Tx {
+        uart: tx,
+        tx_en: Some(transport::TxEn {
+            pin: tx_en_pin,
+            tx_level,
+        }),
+    };
 
     // system-flash: pass BOOT0 pin, the level that selects system flash,
     // and the reset delay in cycles (RC ~1ms @ 8MHz = 8000; flip-flop: 0).

@@ -26,7 +26,10 @@ fn main() -> ! {
         pclk: 8_000_000,
         mapping: UsartMapping::Usart1Remap0,
         rx_pull: Pull::None,
-        tx_en: None,
+        tx_en: Some(TxEnConfig {
+            pin: Pin::PC2,
+            tx_level: Level::Low,
+        }),
     });
 
     // system-flash: GPIO drives the external BOOT0 circuit. The Level arg is

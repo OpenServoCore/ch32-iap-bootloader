@@ -2,20 +2,31 @@
 
 ## [Unreleased]
 
+### Added
+
+- **CH32V00x support** — full bootloader and app support for CH32V002/V004/V005/V006/V007 (system flash at `0x1FFF0000`, 3KB + 256B).
+- `tinyboot-ch32-rt` crate: minimal `_start` + `link.x` for bootloader binaries that can't afford full `qingke-rt`.
+- V103 split BOOT/BOOT2 system-flash regions: UART transport placed in `.text2` (second region) so all features fit.
+- `tx_en` support in the CH32V00x example app for RS-485 / DXL TTL loopback.
+
 ### Changed
 
-- Switched `ch32-metapac` to git in preparation for V00x support.
+- **Breaking:** protocol address reduced to 24 bits; addr byte 3 is now a per-command `Flags` byte. `WriteFlags::FLUSH` replaces the standalone `Cmd::Flush`; `ResetFlags::BOOTLOADER` replaces `addr=1` signaling on Reset.
+- **Breaking:** `Frame::addr: u32` split into `addr_lo: u16` + `addr_hi: u8` + `flags: Flags` union; use `Frame::addr()` / `Frame::set_addr()` accessors.
 - **Breaking:** merged `tinyboot-ch32-hal`, `tinyboot-ch32-boot`, and `tinyboot-ch32-app` into a single `tinyboot-ch32` crate (`::boot`, `::app`, `::hal` modules).
 - **Breaking:** replaced `BootMode` with `RunMode { HandOff, Service }`, and reshaped `BootCtl` around `run_mode()`/`set_run_mode()`, `reset()`, and `hand_off()`.
 - **Breaking:** `tinyboot_core::traits` flattened; `BootClient` gone, app behaviour moved to `tinyboot_core::app::App`.
 - **Breaking:** V103 + `system-flash` `BootCtl::new` now takes `(Pin, Level, u32)` for the external BOOT0 circuit; other combinations stay unit-arg.
 - **Breaking:** removed `Storage::unlock()` — flash lock/unlock is now scoped per operation inside the HAL.
+- Switched `ch32-metapac` to git for V00x support.
 - Run-mode persistence split into variant-specific backends (`BOOT_MODE` register on V003 system-flash, RAM magic word elsewhere, placed at the last 4 bytes of RAM to avoid colliding with `qingke-rt`'s highcode-init flag).
 - Non-HAL `bool` parameters converted to enums (`Duplex`, `Level`, `Pull`, `RunMode`, `BootSrc`).
+- Dispatcher refactored for readability and reduced size (eliminated `.rodata` jump table; shared `frame.send` path).
 
-### Added
+### Fixed
 
-- `tinyboot-ch32-rt` crate: minimal `_start` + `link.x` for bootloader binaries that can't afford full `qingke-rt`.
+- Dispatcher now flushes the transport after send — required for RS-485 / DXL TTL half-duplex.
+- Ring buffer properly reset after flush.
 
 ## [0.3.0] - 2026-04-15
 

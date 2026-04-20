@@ -533,6 +533,7 @@ dependencies = [
 name = "tinyboot-protocol"
 version = "0.3.0"
 dependencies = [
+ "bitflags 2.11.1",
  "embedded-io",
  "embedded-io-async",
 ]

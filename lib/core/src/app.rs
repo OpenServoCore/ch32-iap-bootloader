@@ -3,7 +3,7 @@
 
 use crate::traits::{BootCtl, BootMetaStore, BootState, RunMode};
 use tinyboot_protocol::frame::{Frame, InfoData};
-use tinyboot_protocol::{Cmd, Status};
+use tinyboot_protocol::{Cmd, ResetFlags, Status};
 
 /// App-side configuration.
 pub struct AppConfig {
@@ -102,7 +102,7 @@ impl<C: BootCtl, M: BootMetaStore> App<C, M> {
                 };
             }
             Cmd::Reset => {
-                if self.frame.addr == 1 {
+                if unsafe { self.frame.flags.reset }.contains(ResetFlags::BOOTLOADER) {
                     self.ctl.set_run_mode(RunMode::Service);
                 }
                 self.ctl.reset();

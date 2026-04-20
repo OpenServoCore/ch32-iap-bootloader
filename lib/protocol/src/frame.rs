@@ -2,7 +2,7 @@ use core::mem::MaybeUninit;
 
 use crate::crc::{CRC_INIT, crc16};
 use crate::sync::Sync;
-use crate::{Cmd, ReadError, Status};
+use crate::{Cmd, ReadError, ResetFlags, Status, WriteFlags};
 
 /// Maximum data payload size per frame.
 pub const MAX_PAYLOAD: usize = 64;
@@ -42,6 +42,21 @@ pub struct VerifyData {
     pub crc: u16,
 }
 
+/// Per-command flags occupying addr byte 3.
+///
+/// Each command can define its own bitflags type as a union variant.
+/// All variants are `u8` so the union is always 1 byte.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub union Flags {
+    /// Raw byte access.
+    pub raw: u8,
+    /// [`Cmd::Write`] flags.
+    pub write: WriteFlags,
+    /// [`Cmd::Reset`] flags.
+    pub reset: ResetFlags,
+}
+
 /// Union-typed data payload.
 ///
 /// Provides zero-cost typed access to frame data. Reading fields is unsafe
@@ -71,8 +86,12 @@ pub struct Frame {
     pub cmd: Cmd,
     /// Response status (always [`Status::Request`] for requests).
     pub status: Status,
-    /// Flash address (for Write/Erase) or mode selector (for Reset).
-    pub addr: u32,
+    /// Address bits [15:0].
+    pub addr_lo: u16,
+    /// Address bits [23:16].
+    pub addr_hi: u8,
+    /// Per-command flags (addr byte 3).
+    pub flags: Flags,
     /// Data payload length in bytes (0..64).
     pub len: u16,
     /// Payload data (union-typed).
@@ -90,10 +109,27 @@ impl Default for Frame {
         frame.sync = Sync::default();
         frame.cmd = Cmd::Info;
         frame.status = Status::Request;
-        frame.addr = 0;
+        frame.addr_lo = 0;
+        frame.addr_hi = 0;
+        frame.flags = Flags { raw: 0 };
         frame.len = 0;
         frame.crc = [0; 2];
         frame
+    }
+}
+
+impl Frame {
+    /// Reconstruct the 24-bit address from lo + hi.
+    #[inline(always)]
+    pub fn addr(&self) -> u32 {
+        self.addr_lo as u32 | (self.addr_hi as u32) << 16
+    }
+
+    /// Set the 24-bit address (lo + hi). Does not touch flags.
+    #[inline(always)]
+    pub fn set_addr(&mut self, addr: u32) {
+        self.addr_lo = addr as u16;
+        self.addr_hi = (addr >> 16) as u8;
     }
 }
 
@@ -291,10 +327,10 @@ mod tests {
         let mut f = Frame {
             cmd,
             status,
-            addr,
-            len: data.len() as u16,
             ..Default::default()
         };
+        f.set_addr(addr);
+        f.len = data.len() as u16;
         unsafe { f.data.raw[..data.len()].copy_from_slice(data) };
         f
     }
@@ -310,7 +346,7 @@ mod tests {
         frame2.read(&mut MockReader::new(sink.written())).unwrap();
         assert_eq!(frame2.cmd, Cmd::Write);
         assert_eq!(frame2.len, 2);
-        assert_eq!(frame2.addr, 0x0800);
+        assert_eq!(frame2.addr(), 0x0800);
         assert_eq!(frame2.status, Status::Request);
         assert_eq!(unsafe { &frame2.data.raw[..2] }, &[0xDE, 0xAD]);
     }
@@ -354,7 +390,7 @@ mod tests {
 
         let mut frame2 = Frame::default();
         frame2.read(&mut MockReader::new(sink.written())).unwrap();
-        assert_eq!(frame2.addr, 0x0001_0800);
+        assert_eq!(frame2.addr(), 0x0001_0800);
     }
 
     #[test]
@@ -379,7 +415,7 @@ mod tests {
         host.read(&mut MockReader::new(resp_sink.written()))
             .unwrap();
         assert_eq!(host.cmd, Cmd::Write);
-        assert_eq!(host.addr, 0x0400);
+        assert_eq!(host.addr(), 0x0400);
         assert_eq!(host.status, Status::Ok);
     }
 

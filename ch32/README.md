@@ -2,16 +2,16 @@
 
 Part of the [tinyboot](https://github.com/OpenServoCore/tinyboot) project — see the main README to get started.
 
-CH32 HAL and tinyboot platform for CH32V003 and CH32V103. Exposes a bootloader-side entry point ([`boot`]) and an app-side client ([`app`]) built on a small in-crate HAL ([`hal`]).
+CH32 HAL and tinyboot platform for CH32V003, CH32V00x (V002/V004/V005/V006/V007), and CH32V103. Exposes a bootloader-side entry point ([`boot`]) and an app-side client ([`app`]) built on a small in-crate HAL ([`hal`]).
 
 ## Modules
 
-| Module     | For                     | What it provides                                                                                    |
-| ---------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `boot`     | Bootloader binaries     | `run()`, `BootCtl`, USART transport (`Usart`, `UsartConfig`, `BaudRate`, `Duplex`, `TxEnConfig`)    |
-| `app`      | Application binaries    | `new_app()`, `App`, `BootCtl`, the `tinyboot_core::app` types                                       |
-| `hal`      | Both                    | `flash`, `gpio`, `usart`, `afio`, `rcc`, `pfic`, `iwdg`; auto-generated `Pin` and `UsartMapping`    |
-| `platform` | (internal)              | `tinyboot_core::traits` impls for Storage, Transport, BootCtl, BootMetaStore                        |
+| Module     | For                  | What it provides                                                                                 |
+| ---------- | -------------------- | ------------------------------------------------------------------------------------------------ |
+| `boot`     | Bootloader binaries  | `run()`, `BootCtl`, USART transport (`Usart`, `UsartConfig`, `BaudRate`, `Duplex`, `TxEnConfig`) |
+| `app`      | Application binaries | `new_app()`, `App`, `BootCtl`, the `tinyboot_core::app` types                                    |
+| `hal`      | Both                 | `flash`, `gpio`, `usart`, `afio`, `rcc`, `pfic`, `iwdg`; auto-generated `Pin` and `UsartMapping` |
+| `platform` | (internal)           | `tinyboot_core::traits` impls for Storage, Transport, BootCtl, BootMetaStore                     |
 
 ## Bootloader example
 
@@ -79,13 +79,14 @@ For CH32V103 `system-flash` apps, pass the same `BootCtl::new(pin, level, delay)
 
 ## Features
 
-| Feature                                             | Description                                               |
-| --------------------------------------------------- | --------------------------------------------------------- |
-| `ch32v003f4p6` / `a4m6` / `f4u6` / `j4m6`           | CH32V003 chip variants                                    |
-| `ch32v103c6t6` / `c8t6` / `c8u6` / `r8t6`           | CH32V103 chip variants                                    |
-| `system-flash`                                      | Build for the system-flash bootloader region              |
+| Feature                                                            | Description                                  |
+| ------------------------------------------------------------------ | -------------------------------------------- |
+| `ch32v003f4p6` / `a4m6` / `f4u6` / `j4m6`                          | CH32V003 chip variants                       |
+| `ch32v002x4x6` / `v004x6x1` / `v005x6x6` / `v006x8x6` / `v007x8x6` | CH32V00x chip variants                       |
+| `ch32v103c6t6` / `c8t6` / `c8u6` / `r8t6`                          | CH32V103 chip variants                       |
+| `system-flash`                                                     | Build for the system-flash bootloader region |
 
-Complete boot + app examples live in [`examples/ch32/v003`](../examples/ch32/v003/) and [`examples/ch32/v103`](../examples/ch32/v103/).
+Complete boot + app examples live in [`examples/ch32/v003`](../examples/ch32/v003/), [`examples/ch32/v00x`](../examples/ch32/v00x/), and [`examples/ch32/v103`](../examples/ch32/v103/).
 
 ## Linker scripts
 

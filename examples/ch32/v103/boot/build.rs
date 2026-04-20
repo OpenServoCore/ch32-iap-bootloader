@@ -23,6 +23,9 @@ fn main() {
     println!("cargo:rerun-if-changed=memory_x");
     println!("cargo:rustc-link-arg=-Ttb-boot.x");
     println!("cargo:rustc-link-arg=-Ttb-run-mode.x");
+    if system_flash {
+        println!("cargo:rustc-link-arg=-Tsplit-sysflash.x");
+    }
 }
 
 fn cfg_has(key: &str) -> bool {
