@@ -7,6 +7,17 @@ Thanks for your interest in tinyboot. This page covers the dev setup, test proce
 - For anything bigger than a typo fix, please [open an issue](https://github.com/OpenServoCore/tinyboot/issues) first so we can discuss the approach.
 - New chip ports are especially welcome — see the [porting guide](porting.md) for the trait surface you'd need to implement.
 
+## AI assistance
+
+Parts of this project — including code, tests, and this handbook — were written with AI assistance. We're open about that, and AI-assisted contributions from others are welcome under the same ground rules we hold ourselves to:
+
+1. **AI-assisted code, tests, and documentation are accepted — but disclose it.** If an AI assistant helped produce your contribution, say so in the PR description. A one-liner is enough. No need to itemize what came from where.
+2. **You are the decision maker.** Architecture, design, code quality, and correctness are your calls, not the AI's. Don't hand off judgment.
+3. **You own the code, not the AI.** Use your best judgment before submitting — if you wouldn't be comfortable putting your name on it, don't send it.
+4. **Test on real hardware.** No "it compiles" submissions for anything that touches flash, peripherals, or the boot path. Run the [hardware validation checklist](#integration-test-checklist-user-flash-mode) where it applies.
+5. **Keep core features in system flash.** The bootloader has to fit in the system-flash budget (see [design notes](design.md)). Non-core features can be `cfg`-gated if they don't fit for everyone.
+6. **Slop PRs will be rejected.** AI-generated or not, PRs that show no sign of human review — unused code, wrong abstractions, duplicated logic, tests that don't exercise the change, docs that hallucinate — will be closed. The policy is about thoughtfulness, not tooling.
+
 ## Workspace layout
 
 ```
