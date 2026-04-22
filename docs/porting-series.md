@@ -196,6 +196,12 @@ strategy:
     chip: [ch32v006x8x6, ch32v007x8x6]
 ```
 
+## Step 7: Update documentation
+
+- Add the new series to the [flash modes](flash-modes.md) table with its system/user flash sizes.
+- Add an entry under [examples](examples.md) describing the new series directory.
+- If the series introduces new boot-mode selection behavior, transports, or other concepts not covered by existing docs, add or update the relevant handbook pages.
+
 ## Checklist
 
 - [ ] Feature flags added to `ch32/Cargo.toml` for each variant
@@ -206,5 +212,5 @@ strategy:
 - [ ] Example `build.rs` lists all variants in `CHIPS` array
 - [ ] Builds for both `system-flash` and `user-flash` modes
 - [ ] CI job added for the new series in `.github/workflows/ci.yml`
-- [ ] Handbook updated if the port adds new concepts or configuration
+- [ ] Documentation updated (flash modes table, examples page, any new concepts)
 - [ ] Tested on hardware
